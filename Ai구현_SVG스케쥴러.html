@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배구 스케줄러 & 투표 시스템</title>
+    <style>
+        /* --- 기본 스타일 --- */
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* --- 헤더 --- */
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        header h1 { margin: 0; font-size: 1.8rem; }
+        header p { margin: 5px 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+        /* --- 메인 컨테이너 --- */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+            gap: 20px;
+        }
+
+        /* --- 공지사항 섹션 --- */
+        .notice-board {
+            flex: 1;
+            min-width: 300px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+
+        .section-title {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-add {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-add:hover { background-color: #34495e; }
+
+        .notice-list { list-style: none; padding: 0; }
+
+        .notice-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+            position: relative;
+        }
+
+        .notice-item:last-child { border-bottom: none; }
+        .notice-item h3 { margin: 0 0 5px; font-size: 1.1rem; }
+        .notice-item p { margin: 0; color: #666; font-size: 0.9rem; }
+        .notice-date { font-size: 0.8rem; color: #999; display: block; margin-top: 5px; }
+
+        .notice-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-modify {
+            background-color: #f1c40f;
+            color: #fff;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .btn-delete {
+            background: #ffdddd;
+            color: #c0392b;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* --- 캘린더 섹션 --- */
+        .calendar-wrapper {
+            flex: 3;
+            min-width: 500px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-nav button {
+            background: none;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background-color: #ddd;
+            border: 1px solid #ddd;
+        }
+
+        .calendar-day-header {
+            background-color: #f8f9fa;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .calendar-day {
+            background-color: white;
+            min-height: 100px;
+            padding: 5px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .calendar-day:hover { background-color: #fafafa; }
+        .calendar-day.other-month { background-color: #f9f9f9; color: #ccc; }
+
+        .day-number { font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+
+        .event-chip {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            font-size: 0.75rem;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-bottom: 2px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+        .event-chip:hover { background-color: #bbdefb; }
+
+        /* --- 모달 스타일 --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .modal-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-save { flex: 1; background-color: #27ae60; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+
+        .btn-join {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-join:disabled { background-color: #95a5a6; cursor: not-allowed; }
+
+        .participant-list {
+            margin-top: 15px;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        /* 데이터 초기화 버튼 */
+        .reset-btn {
+            display: block;
+            margin: 20px auto;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .calendar-wrapper { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🏐 배구 동아리 스케줄러</h1>
+    <p>일정 관리 및 참가 투표 시스템 (자동 저장됨)</p>
+</header>
+
+<div class="container">
+    <!-- 좌측: 공지사항 -->
+    <div class="notice-board">
+        <div class="section-title">
+            <h2>📢 공지사항</h2>
+            <button class="btn-add" onclick="openNoticeModal()">+ 추가</button>
+        </div>
+        <ul class="notice-list" id="noticeList">
+        </ul>
+    </div>
+
+    <!-- 우측: 캘린더 -->
+    <div class="calendar-wrapper">
+        <div class="calendar-header">
+            <h2 id="currentMonthYear"></h2>
+            <div class="calendar-nav">
+                <button onclick="changeMonth(-1)">◀ 이전</button>
+                <button onclick="changeMonth(1)">다음 ▶</button>
+            </div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid">
+        </div>
+    </div>
+</div>
+
+<!-- 데이터 초기화 버튼 (테스트용) -->
+<button class="reset-btn" onclick="resetAllData()">⚠️ 모든 데이터 초기화 (테스트용)</button>
+
+<!-- 모달들 (앞선 코드와 동일) -->
+<!-- 공지 추가 모달 -->
+<div id="noticeModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeNoticeModal()">&times;</span>
+        <h2>새 공지사항</h2>
+        <div class="form-group">
+            <label>제목</label>
+            <input type="text" id="noticeTitle" placeholder="예: 다음 주 연습 일정">
+        </div>
+        <div class="form-group">
+            <label>내용</label>
+            <textarea id="noticeContent" rows="4" placeholder="상세 내용을 입력하세요"></textarea>
+        </div>
+        <button class="btn-save" onclick="saveNotice()">저장</button>
+    </div>
+</div>
+
+<!-- 공지 수정 모달 -->
+<div id="editNoticeModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeEditNoticeModal()">&times;</span>
+        <h2>공지사항 수정</h2>
+        <div class="form-group">
+            <label>제목</label>
+            <input type="text" id="editNoticeTitle">
+        </div>
+        <div class="form-group">
+            <label>내용</label>
+            <textarea id="editNoticeContent" rows="4"></textarea>
+        </div>
+        <button class="btn-save" onclick="updateNotice()">수정 완료</button>
+    </div>
+</div>
+
+<!-- 일정 추가 모달 -->
+<div id="eventModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeEventModal()">&times;</span>
+        <h2>일정 추가</h2>
+        <div class="form-group">
+            <label>제목</label>
+            <input type="text" id="eventTitle" placeholder="예: 팀 연습">
+        </div>
+        <div class="form-group">
+            <label>시간</label>
+            <input type="time" id="eventTime" value="18:00">
+        </div>
+        <div class="form-group">
+            <label>장소 (체육관)</label>
+            <input type="text" id="eventLocation" placeholder="예: 서울体育館">
+        </div>
+        <div class="form-group">
+            <label>참여 가능 인원</label>
+            <input type="number" id="eventMax" value="6" min="1">
+        </div>
+        <button class="btn-save" onclick="saveEvent()">저장</button>
+    </div>
+</div>
+
+<!-- 일정 수정 모달 -->
+<div id="editEventModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeEditEventModal()">&times;</span>
+        <h2>일정 수정</h2>
+        <div class="form-group">
+            <label>제목</label>
+            <input type="text" id="editEventTitle">
+        </div>
+        <div class="form-group">
+            <label>시간</label>
+            <input type="time" id="editEventTime">
+        </div>
+        <div class="form-group">
+            <label>장소 (체육관)</label>
+            <input type="text" id="editEventLocation">
+        </div>
+        <div class="form-group">
+            <label>참여 가능 인원</label>
+            <input type="number" id="editEventMax" min="1">
+        </div>
+        <button class="btn-save" onclick="updateEvent()">수정 완료</button>
+    </div>
+</div>
+
+<!-- 일정 상세 및 투표 모달 -->
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeDetailModal()">&times;</span>
+        <h2 id="detailTitle">제목</h2>
+        <p><strong>시간:</strong> <span id="detailTime"></span></p>
+        <p><strong>장소:</strong> <span id="detailLocation"></span></p>
+
+        <div class="participant-list">
+            <h3>참가자 명단 (<span id="currentCount">0</span>/<span id="maxCount">0</span>)</h3>
+            <ul id="participantUl"></ul>
+        </div>
+
+        <button id="btnJoin" class="btn-join" onclick="joinEvent()">투표 (참여하기)</button>
+
+        <div class="modal-btn-group">
+            <button class="btn-modify" onclick="openEditEventModalFromDetail()" style="background-color: #f1c40f; color: white; border:none; padding:10px; border-radius:4px; cursor:pointer; flex:1;">수정</button>
+            <button class="btn-save" onclick="deleteEvent()" style="background-color: #e74c3c;">삭제</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* =========================================
+       [변경됨] 데이터 저장소 (LocalStorage 사용)
+       ========================================= */
+
+    // 초기 데이터 (처음 실행 시에만 사용)
+    const defaultNotices = [
+        { id: 1, title: '환영합니다', content: '배구 동아리 시즌이 시작됩니다!', date: '2023-10-01' }
+    ];
+
+    const defaultEvents = [
+        {
+            id: 1,
+            date: new Date().toISOString().slice(0, 10),
+            title: '팀 연습',
+            time: '10:00',
+            location: '서울体育館 A코트',
+            max: 6,
+            participants: ['김철수', '이영희']
+        }
+    ];
+
+    // 실제 사용할 변수들
+    let notices = [];
+    let events = [];
+    let currentDate = new Date();
+    let selectedDateStr = '';
+    let currentEventId = null;
+    let editingNoticeId = null;
+
+    // [추가됨] LocalStorage에서 데이터 로드
+    function loadData() {
+        const savedNotices = localStorage.getItem('volley_notices');
+        const savedEvents = localStorage.getItem('volley_events');
+
+        if (savedNotices) {
+            notices = JSON.parse(savedNotices);
+        } else {
+            notices = [...defaultNotices];
+        }
+
+        if (savedEvents) {
+            events = JSON.parse(savedEvents);
+        } else {
+            events = [...defaultEvents];
+        }
+    }
+
+    // [추가됨] LocalStorage에 데이터 저장
+    function saveData() {
+        localStorage.setItem('volley_notices', JSON.stringify(notices));
+        localStorage.setItem('volley_events', JSON.stringify(events));
+    }
+
+    // [테스트용] 데이터 초기화
+    function resetAllData() {
+        if(confirm('모든 데이터가 초기화됩니다. 계속할까요?')) {
+            localStorage.removeItem('volley_notices');
+            localStorage.removeItem('volley_events');
+            location.reload(); // 페이지 새로고침
+        }
+    }
+
+    /* =========================================
+       초기화 실행
+       ========================================= */
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData(); // 저장된 데이터 불러오기
+        renderNotices();
+        renderCalendar();
+    });
+
+    /* =========================================
+       공지사항 기능 (CRUD + 저장)
+       ========================================= */
+    function renderNotices() {
+        const list = document.getElementById('noticeList');
+        list.innerHTML = '';
+        notices.forEach(n => {
+            const li = document.createElement('li');
+            li.className = 'notice-item';
+            li.innerHTML = `
+                <h3>${n.title}</h3>
+                <p>${n.content}</p>
+                <span class="notice-date">${n.date}</span>
+                <div class="notice-actions">
+                    <button class="btn-modify" onclick="openEditNoticeModal(${n.id})">수정</button>
+                    <button class="btn-delete" onclick="deleteNotice(${n.id})">삭제</button>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function openNoticeModal() {
+        document.getElementById('noticeTitle').value = '';
+        document.getElementById('noticeContent').value = '';
+        document.getElementById('noticeModal').style.display = 'block';
+    }
+    function closeNoticeModal() { document.getElementById('noticeModal').style.display = 'none'; }
+
+    function saveNotice() {
+        const title = document.getElementById('noticeTitle').value;
+        const content = document.getElementById('noticeContent').value;
+        if(!title || !content) return alert('제목과 내용을 입력하세요');
+
+        const newNotice = {
+            id: Date.now(),
+            title: title,
+            content: content,
+            date: new Date().toISOString().slice(0, 10)
+        };
+        notices.unshift(newNotice);
+
+        saveData(); // [추가됨] 데이터 저장
+        renderNotices();
+        closeNoticeModal();
+    }
+
+    function openEditNoticeModal(id) {
+        const notice = notices.find(n => n.id === id);
+        if(!notice) return;
+        editingNoticeId = id;
+        document.getElementById('editNoticeTitle').value = notice.title;
+        document.getElementById('editNoticeContent').value = notice.content;
+        document.getElementById('editNoticeModal').style.display = 'block';
+    }
+    function closeEditNoticeModal() {
+        document.getElementById('editNoticeModal').style.display = 'none';
+        editingNoticeId = null;
+    }
+
+    function updateNotice() {
+        const title = document.getElementById('editNoticeTitle').value;
+        const content = document.getElementById('editNoticeContent').value;
+        if(!title || !content) return alert('제목과 내용을 입력하세요');
+
+        const index = notices.findIndex(n => n.id === editingNoticeId);
+        if(index !== -1) {
+            notices[index].title = title;
+            notices[index].content = content;
+            notices[index].date = new Date().toISOString().slice(0, 10);
+
+            saveData(); // [추가됨] 데이터 저장
+            renderNotices();
+            closeEditNoticeModal();
+        }
+    }
+
+    function deleteNotice(id) {
+        if(confirm('이 공지를 삭제하시겠습니까?')) {
+            notices = notices.filter(n => n.id !== id);
+            saveData(); // [추가됨] 데이터 저장
+            renderNotices();
+        }
+    }
+
+    /* =========================================
+       캘린더 기능
+       ========================================= */
+    function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        document.getElementById('currentMonthYear').innerText = `${year}년 ${month + 1}월`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const lastDate = new Date(year, month + 1, 0).getDate();
+
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        days.forEach(d => {
+            const div = document.createElement('div');
+            div.className = 'calendar-day-header';
+            div.innerText = d;
+            grid.appendChild(div);
+        });
+
+        for(let i=0; i<firstDay; i++) {
+            const div = document.createElement('div');
+            div.className = 'calendar-day other-month';
+            grid.appendChild(div);
+        }
+
+        for(let i=1; i<=lastDate; i++) {
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+            const div = document.createElement('div');
+            div.className = 'calendar-day';
+            div.onclick = () => openEventModal(dateStr);
+
+            let eventsHtml = '';
+            const dayEvents = events.filter(e => e.date === dateStr);
+            dayEvents.forEach(e => {
+                eventsHtml += `<div class="event-chip" onclick="event.stopPropagation(); openDetailModal(${e.id})">${e.time} ${e.title}</div>`;
+            });
+
+            div.innerHTML = `<div class="day-number">${i}</div>${eventsHtml}`;
+            grid.appendChild(div);
+        }
+    }
+
+    function changeMonth(delta) {
+        currentDate.setMonth(currentDate.getMonth() + delta);
+        renderCalendar();
+    }
+
+    /* =========================================
+       일정 추가 기능
+       ========================================= */
+    function openEventModal(dateStr) {
+        selectedDateStr = dateStr;
+        document.getElementById('eventTitle').value = '';
+        document.getElementById('eventTime').value = '18:00';
+        document.getElementById('eventLocation').value = '';
+        document.getElementById('eventMax').value = 6;
+        document.getElementById('eventModal').style.display = 'block';
+    }
+    function closeEventModal() { document.getElementById('eventModal').style.display = 'none'; }
+
+    function saveEvent() {
+        const title = document.getElementById('eventTitle').value;
+        const time = document.getElementById('eventTime').value;
+        const location = document.getElementById('eventLocation').value;
+        const max = document.getElementById('eventMax').value;
+
+        if(!title) return alert('제목을 입력하세요');
+
+        const newEvent = {
+            id: Date.now(),
+            date: selectedDateStr,
+            title: title,
+            time: time,
+            location: location,
+            max: parseInt(max),
+            participants: []
+        };
+
+        events.push(newEvent);
+
+        saveData(); // [추가됨] 데이터 저장
+        renderCalendar();
+        closeEventModal();
+    }
+
+    /* =========================================
+       일정 상세, 수정, 삭제 기능
+       ========================================= */
+    function openDetailModal(id) {
+        const event = events.find(e => e.id === id);
+        if(!event) return;
+
+        currentEventId = id;
+        document.getElementById('detailTitle').innerText = event.title;
+        document.getElementById('detailTime').innerText = `${event.date} ${event.time}`;
+        document.getElementById('detailLocation').innerText = event.location;
+
+        document.getElementById('currentCount').innerText = event.participants.length;
+        document.getElementById('maxCount').innerText = event.max;
+
+        const ul = document.getElementById('participantUl');
+        ul.innerHTML = '';
+        event.participants.forEach(p => {
+            const li = document.createElement('li');
+            li.innerText = p;
+            ul.appendChild(li);
+        });
+
+        const btnJoin = document.getElementById('btnJoin');
+        if(event.participants.length >= event.max) {
+            btnJoin.disabled = true;
+            btnJoin.innerText = '정원 마감';
+        } else {
+            btnJoin.disabled = false;
+            btnJoin.innerText = '투표 (참여하기)';
+        }
+
+        document.getElementById('detailModal').style.display = 'block';
+    }
+    function closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; }
+
+    function deleteEvent() {
+        if(confirm('이 일정을 삭제하시겠습니까?')) {
+            events = events.filter(e => e.id !== currentEventId);
+            saveData(); // [추가됨] 데이터 저장
+            renderCalendar();
+            closeDetailModal();
+        }
+    }
+
+    function openEditEventModalFromDetail() {
+        const event = events.find(e => e.id === currentEventId);
+        if(!event) return;
+
+        document.getElementById('editEventTitle').value = event.title;
+        document.getElementById('editEventTime').value = event.time;
+        document.getElementById('editEventLocation').value = event.location;
+        document.getElementById('editEventMax').value = event.max;
+
+        closeDetailModal();
+        document.getElementById('editEventModal').style.display = 'block';
+    }
+    function closeEditEventModal() {
+        document.getElementById('editEventModal').style.display = 'none';
+    }
+
+    function updateEvent() {
+        const title = document.getElementById('editEventTitle').value;
+        const time = document.getElementById('editEventTime').value;
+        const location = document.getElementById('editEventLocation').value;
+        const max = document.getElementById('editEventMax').value;
+
+        if(!title) return alert('제목을 입력하세요');
+
+        const index = events.findIndex(e => e.id === currentEventId);
+        if(index !== -1) {
+            events[index].title = title;
+            events[index].time = time;
+            events[index].location = location;
+            events[index].max = parseInt(max);
+
+            saveData(); // [추가됨] 데이터 저장
+            renderCalendar();
+            closeEditEventModal();
+        }
+    }
+
+    function joinEvent() {
+        const name = prompt('이름을 입력하여 투표에 참여하세요:');
+        if(!name) return;
+
+        const event = events.find(e => e.id === currentEventId);
+        if(event) {
+            event.participants.push(name);
+
+            saveData(); // [추가됨] 데이터 저장
+            openDetailModal(currentEventId);
+            renderCalendar();
+        }
+    }
+
+    window.onclick = function(event) {
+        if (event.target.className === 'modal') {
+            event.target.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>

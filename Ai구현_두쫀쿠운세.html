@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>속이 꽉 찬 두바이 호빵 쿠키 🍀</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #FFF9E6;
+            color: #ab807f;
+            overflow: hidden;
+        }
+
+        .container { z-index: 1; text-align: center; padding: 20px; }
+
+        h1 { font-size: 2rem; margin-bottom: 10px; color: #3d2b1f; }
+        .subtitle { color: #8b5e3c; margin-bottom: 40px; font-weight: 500; }
+
+        .stage {
+            position: relative;
+            width: 350px;
+            height: 250px;
+            margin: 0 auto 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .plate {
+            position: absolute;
+            bottom: 20px;
+            width: 320px;
+            height: 70px;
+            background: #ffffff;
+            border: 2px solid #e8e8e8;
+            border-radius: 50%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.06), inset 0 -5px 15px rgba(0,0,0,0.05);
+            z-index: 0;
+        }
+
+        .cookie-wrapper {
+            position: relative;
+            width: 260px;
+            height: 180px;
+            margin-bottom: 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 2;
+        }
+
+        .cookie-half {
+            width: 120px;
+            height: 160px;
+            transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            filter: drop-shadow(0 6px 8px rgba(0,0,0,0.12));
+        }
+
+        .cookie-left { transform-origin: bottom right; }
+        .cookie-wrapper.open .cookie-left { transform: translateX(-70px) rotate(-8deg); }
+
+        .cookie-right { transform-origin: bottom left; }
+        .cookie-wrapper.open .cookie-right { transform: translateX(70px) rotate(8deg); }
+
+        /* 속재료(카다이프) 효과 - 알알이 보이게 */
+        .inner-section {
+            transition: opacity 0.4s ease-in-out;
+            opacity: 0;
+        }
+        .cookie-wrapper.open .inner-section { opacity: 1; }
+
+        .message-box {
+            display: none;
+            background: white;
+            border: 3px solid #3d2b1f;
+            border-radius: 25px;
+            padding: 25px;
+            max-width: 350px;
+            margin: 0 auto;
+            box-shadow: 0 10px 0px #e0c097;
+            animation: popUp 0.5s ease forwards;
+        }
+        .message-box.show { display: block; }
+
+        @keyframes popUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fortune-text { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; color: #2e7d32; }
+        .fortune-detail { font-size: 1rem; color: #6d4c41; line-height: 1.5; }
+
+        .reset-btn {
+            display: none;
+            margin-top: 25px;
+            padding: 12px 35px;
+            background: #3d2b1f;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .reset-btn.show { display: inline-block; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🧆오늘의 두쫀쿠🧆</h1>
+        <p class="subtitle">속이 꽉 찬 카다이프를 확인해 보세요!</p>
+
+        <div class="stage">
+            <div class="plate"></div>
+
+            <div class="cookie-wrapper" id="cookieWrapper" onclick="openCookie()">
+                <!-- 왼쪽 반쪽 -->
+                <div class="cookie-half cookie-left">
+                    <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 겉면: 카카오가루 질감 (어두운 갈색 + 점선 질감) -->
+                        <defs>
+                            <pattern id="cocoaTexture" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
+                                <circle cx="1" cy="1" r="1" fill="#2a1d15" opacity="0.3"/>
+                            </pattern>
+                        </defs>
+                        <path d="M120,10 C60,10 20,50 20,100 C20,145 70,155 120,155 L120,10 Z" fill="#652004" stroke="#652004" stroke-width="2"/>
+
+                        <!-- 속면: 카다이프 (선명하고 알알이 있는 녹색) -->
+                        <path class="inner-section" d="M120,20 C85,25 60,55 60,100 C60,140 90,150 130,150 L125,25 Z" fill="#558b2f" />
+                        <!-- 카다이프 알알이 질감 -->
+                        <g class="inner-section">
+                            <circle cx="100" cy="60" r="2" fill="#33691e" opacity="0.6"/>
+                            <circle cx="110" cy="80" r="3" fill="#33691e" opacity="0.6"/>
+                            <circle cx="95" cy="100" r="2.5" fill="#33691e" opacity="0.6"/>
+                            <circle cx="105" cy="120" r="2" fill="#33691e" opacity="0.6"/>
+                            <circle cx="115" cy="90" r="1.5" fill="#33691e" opacity="0.6"/>
+                            <circle cx="85" cy="70" r="2" fill="#33691e" opacity="0.6"/>
+                            <circle cx="90" cy="130" r="2.5" fill="#33691e" opacity="0.6"/>
+                            <!-- 질감 선 -->
+			  	<path d="M110,45 Q115,60 110,75" fill="none" stroke="#7cb342" stroke-width="1.5" opacity="0.4"/>
+				<path d="M95,85 Q100,100 95,115" fill="none" stroke="#7cb342" stroke-width="1.5" opacity="0.4"/>
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- 오른쪽 반쪽 -->
+                <div class="cookie-half cookie-right">
+                    <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 겉면: 카카오가루 질감 -->
+                        <path d="M0,10 C60,10 100,50 100,100 C100,145 50,155 0,155 L0,10 Z" fill="#652004" stroke="#652004" stroke-width="2"/>
+
+                        <!-- 속면: 카다이프 -->
+                        <path class="inner-section" d="M0,25 C30,25 50,55 50,100 C50,140 30,150 0,150 L0,25 Z" fill="#558b2f" />
+                        <g class="inner-section">
+                            <circle cx="20" cy="60" r="2" fill="#33691e" opacity="0.6"/>
+                            <circle cx="30" cy="80" r="3" fill="#33691e" opacity="0.6"/>
+                            <circle cx="15" cy="100" r="2.5" fill="#33691e" opacity="0.6"/>
+                            <circle cx="25" cy="120" r="2" fill="#33691e" opacity="0.6"/>
+                            <circle cx="35" cy="90" r="1.5" fill="#33691e" opacity="0.6"/>
+                            <circle cx="45" cy="70" r="2" fill="#33691e" opacity="0.6"/>
+                            <circle cx="40" cy="130" r="2.5" fill="#33691e" opacity="0.6"/>
+                            <path d="M10,45 Q5,60 10,75" fill="none" stroke="#7cb342" stroke-width="1.5" opacity="0.4"/>
+                            <path d="M25,85 Q20,100 25,115" fill="none" stroke="#7cb342" stroke-width="1.5" opacity="0.4"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="message-box" id="messageBox">
+            <div class="fortune-text" id="fortuneText"></div>
+            <div class="fortune-detail" id="fortuneDetail"></div>
+        </div>
+
+        <button class="reset-btn" id="resetBtn" onclick="resetCookie()">🔄다시 권력장악하기</button>
+    </div>
+
+    <script>
+        const fortunes = [
+            { text: "💚 속이 꽉 찬 호빵 같은 행운!", detail: "겉으로는 모르지만 속이 알찬 결과가 당신을 기다리고 있어요." },
+            { text: "🌟 카다이프처럼 달콤한 만남", detail: "오늘 만나는 사람과 깊은 인연을 맺게 될 거예요." },
+            { text: "🥨 쫀득한财运(IU)到来", detail: "예상치 못한 곳에서 행운의 돈이 들어올 수 있어요!" },
+            { text: "🍫 겉바속촉의 묘미", detail: "깊은 내면을 가진 인물이 당신을 도와줄 거예요." },
+            { text: "✨ 카다이프 커플", detail: "소문난 디저트처럼 특별한 사람과 특별한 시간이 기대됩니다." }
+        ];
+
+        function openCookie() {
+            const wrapper = document.getElementById('cookieWrapper');
+            if (wrapper.classList.contains('open')) return;
+
+            wrapper.classList.add('open');
+
+            setTimeout(() => {
+                const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+                document.getElementById('fortuneText').textContent = fortune.text;
+                document.getElementById('fortuneDetail').textContent = fortune.detail;
+                document.getElementById('messageBox').classList.add('show');
+                document.getElementById('resetBtn').classList.add('show');
+            }, 650);
+        }
+
+        function resetCookie() {
+            document.getElementById('cookieWrapper').classList.remove('open');
+            document.getElementById('messageBox').classList.remove('show');
+            document.getElementById('resetBtn').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

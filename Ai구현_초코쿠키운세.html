@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 행운 🍀</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            overflow: hidden;
+        }
+
+        /* 배경 장식 */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            z-index: 1;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .subtitle {
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        /* 쿠키 영역 */
+        .cookie-wrapper {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 30px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .cookie-wrapper:hover {
+            transform: scale(1.05);
+        }
+
+        .cookie {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* 쿠키 SVG */
+        .cookie svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
+        }
+
+        /* 운 */
+        .message-box세 메시지 영역 {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px 40px;
+            max-width: 400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .message-box.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fortune-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .fortune-detail {
+            font-size: 0.95rem;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .lucky-color {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .lucky-color span {
+            color: #ff6b6b;
+            font-weight: 700;
+        }
+
+        .reset-btn {
+            display: none;
+            margin-top: 25px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .reset-btn.show {
+            display: inline-block;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 쿠키가 부서지는 애니메이션 */
+        .cookie.cracked {
+            animation: crack 0.5s ease forwards;
+        }
+
+        @keyframes crack {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.1); }
+            100% { transform: scale(0.8); opacity: 0; }
+        }
+
+        .instruction {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+
+        .instruction.show {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 배경 별 -->
+    <div class="stars" id="stars"></div>
+
+    <div class="container">
+        <h1>🔮 오늘의 포춘쿠키</h1>
+        <p class="subtitle">쿠키를 클릭하여 행운을 확인하세요!</p>
+
+        <div class="cookie-wrapper" onclick="openCookie()">
+            <div class="cookie" id="cookie">
+                <svg viewBox="0 0 100 100">
+                    <!-- 쿠키 모양 -->
+                    <circle cx="50" cy="50" r="45" fill="#d4a574"/>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#c49464" stroke-width="2"/>
+                    <!-- 초콜릿 조각 -->
+                    <circle cx="30" cy="35" r="6" fill="#5d4037"/>
+                    <circle cx="65" cy="40" r="5" fill="#5d4037"/>
+                    <circle cx="45" cy="60" r="7" fill="#5d4037"/>
+                    <circle cx="70" cy="65" r="5" fill="#5d4037"/>
+                    <circle cx="25" cy="60" r="4" fill="#5d4037"/>
+                    <circle cx="55" cy="30" r="4" fill="#5d4037"/>
+                    <circle cx="75" cy="50" r="3" fill="#5d4037"/>
+                    <circle cx="40" cy="75" r="5" fill="#5d4037"/>
+                </svg>
+            </div>
+        </div>
+
+        <p class="instruction" id="instruction">👆 쿠키를 클릭해보세요!</p>
+
+        <div class="message-box" id="messageBox">
+            <div class="fortune-text" id="fortuneText"></div>
+            <div class="fortune-detail" id="fortuneDetail"></div>
+            <div class="lucky-color" id="luckyColor"></div>
+        </div>
+
+        <button class="reset-btn" id="resetBtn" onclick="resetCookie()">🔄 다시 뽑기</button>
+    </div>
+
+    <script>
+        // 운세 데이터
+        const fortunes = [
+            {
+                text: "🎉 행운이 당신을 찾아옵니다!",
+                detail: "오늘 하루 동안 좋은 일들이 많이 기다리고 있을 거예요. 특히财运가 중요해요!",
+                lucky: "빨강"
+            },
+            {
+                text: "💪 노력한 만큼 보상받아요",
+                detail: "하던 일에 근면함好消息가 있을 거예요. 인내심을 가지고 기다리세요.",
+                lucky: "노랑"
+            },
+            {
+                text: "🌟 새로운 기회가 온다!",
+                detail: "예상치 못한 곳에서 좋은 소식이 찾아올 거예요. 문을 두드려보세요.",
+                lucky: "초록"
+            },
+            {
+                text: "💕 사랑이 깊어지는 하루",
+                detail: "소중한 사람들과 좋은 시간을 보내게 될 거예요. 감사하는 마음을 표현하세요.",
+                lucky: "분홍"
+            },
+            {
+                text: "📚 배움의 기회가 온다",
+                detail: "새로운 지식을 얻을 수 있는 좋은 기회예요. 호기심을 갖는 것이 중요해요.",
+                lucky: "파랑"
+            },
+            {
+                text: "✈️ 여행이 행운을 가져온다",
+                detail: "이번 여행에서 예상치 못한好运을 만날 수 있어요. 긍정적으로 떠나보세요!",
+                lucky: "주황"
+            },
+            {
+                text: "💰财运 상승!",
+                detail: "돈 관련된 좋은 소식이 있을 수 있어요. 특히 투자나 재테크에 좋을 거예요.",
+                lucky: "보라"
+            },
+            {
+                text: "🤝 인연이 확대되는一天",
+                detail: "새로운 인연을 만나게 될 거예요. 웃으면서 다가가면 좋은 인연이 됩니다.",
+                lucky: "하늘"
+            },
+            {
+                text: "🌈 기쁨이 가득한 하루",
+                detail: "작은 일에서도幸福感을 느낄 수 있어요. 주변을 잘 관찰해보세요.",
+                lucky: "무지개"
+            },
+            {
+                text: "🔥 에너지가 넘치는 하루!",
+                detail: "오늘은 무엇이든 할 수 있는 힘이湧WA해요.運動이나 창작 활동에 좋아요.",
+                lucky: "주황"
+            },
+            {
+                text: "🧘‍♀️ 휴식이 필요한 하루",
+                detail: "무리하지 말고 여유를 가지세요. 내면의 목소리에 귀 기울이세요.",
+                lucky: "하얀색"
+            },
+            {
+                text: "🎯 목표가 달성되는 하루",
+                detail: "오랫동안 꿈꾸던 목표에 한 걸음 더 다가갈 수 있어요. 계속 힘내세요!",
+                lucky: "금색"
+            }
+        ];
+
+        // 배경 별 생성
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // 쿠키 열기
+        function openCookie() {
+            const cookie = document.getElementById('cookie');
+            const messageBox = document.getElementById('messageBox');
+            const resetBtn = document.getElementById('resetBtn');
+            const instruction = document.getElementById('instruction');
+
+            // 쿠키 부서지는 애니메이션
+            cookie.classList.add('cracked');
+
+            // 메시지 표시
+            setTimeout(() => {
+                // 랜덤 운세 선택
+                const randomIndex = Math.floor(Math.random() * fortunes.length);
+                const fortune = fortunes[randomIndex];
+
+                document.getElementById('fortuneText').textContent = fortune.text;
+                document.getElementById('fortuneDetail').textContent = fortune.detail;
+                document.getElementById('luckyColor').innerHTML = `오늘의 행운 색상: <span>${fortune.lucky}</span>`;
+
+                messageBox.classList.add('show');
+                resetBtn.classList.add('show');
+                instruction.classList.add('show');
+            }, 400);
+        }
+
+        // 초기화
+        function resetCookie() {
+            const cookie = document.getElementById('cookie');
+            const messageBox = document.getElementById('messageBox');
+            const resetBtn = document.getElementById('resetBtn');
+            const instruction = document.getElementById('instruction');
+
+            // 초기 상태로 복구
+            messageBox.classList.remove('show');
+            resetBtn.classList.remove('show');
+            instruction.classList.remove('show');
+
+            setTimeout(() => {
+                cookie.classList.remove('cracked');
+            }, 300);
+        }
+
+        // 초기화
+        createStars();
+    </script>
+</body>
+</html>

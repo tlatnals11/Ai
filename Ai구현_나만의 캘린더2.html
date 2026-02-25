@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Diary Calendar</title>
+    <!-- 필기 느낌 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+    <style>
+        /* CSS 변수 */
+        :root {
+            --theme-color: #e68a8a; /* 다이어리 느낌의柔らかい赤 */
+            --paper-color: #fffef9; /* 따뜻한 흰색 (크림지) */
+            --bg-color: #f5f0e6; /* 베이지 배경 */
+            --line-color: #e0dcd3; /* 종이 선 색 */
+            --text-color: #4a4a4a;
+            --stamp-opacity: 0.85;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-color);
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4cbb6' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            color: var(--text-color);
+        }
+
+        /* 다이어리一样的 외관 */
+        .diary-wrapper {
+            width: 95vw;
+            height: 92vh;
+            max-width: 1000px;
+            background: var(--paper-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding: 30px;
+        }
+
+        /* 상단 인쇄装潢 */
+        .diary-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--theme-color);
+            padding-bottom: 15px;
+        }
+
+        .month-display {
+            font-family: 'Nanum Pen Script', cursive;
+            font-size: 2.5rem;
+            color: var(--theme-color);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #aaa;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+        .nav-btn:hover { color: var(--theme-color); }
+
+        /* 설정 버튼 */
+        .settings-btn {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #bbb;
+        }
+
+        /* 설정 패널 */
+        .settings-panel {
+            display: none;
+            position: absolute;
+            top: 60px; right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+            border: 1px solid #eee;
+        }
+        .settings-panel.active { display: block; }
+        .setting-item { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+
+        /* 캘린더 그리드 */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: 30px repeat(5, 1fr); /* 5주로 변경 (다이어리 느낌) */
+            gap: 8px;
+            flex-grow: 1;
+            padding: 10px;
+            background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+            background-size: 100% 100px; /* 노트처럼 줄 */
+        }
+
+        /* 요일 (Sun, Mon...) */
+        .day-name {
+            text-align: center;
+            font-weight: 500;
+            color: #999;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        /* 날짜 셀 */
+        .date-cell {
+            position: relative;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            min-height: 80px; /* 넉넉한 높이 */
+        }
+
+        .date-cell:hover {
+            background-color: rgba(230, 138, 138, 0.1);
+        }
+
+        .date-cell.empty { cursor: default; }
+
+        /* 날짜 숫자 */
+        .date-num {
+            font-family: 'Nanum Pen Script', cursive;
+            font-size: 1.4rem;
+            color: var(--theme-color);
+            margin-bottom: 5px;
+        }
+
+        .date-cell.today .date-num {
+            background: var(--theme-color);
+            color: white;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        /* 다이어리 같은 스티커 (약간 inúmerencie 효과) */
+        .stamp-img {
+            position: absolute;
+            bottom: 10px; right: 10px;
+            width: 60px; height: 60px;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transform: rotate(-5deg); /* 살짝 비스듬하게 */
+            opacity: var(--stamp-opacity);
+            z-index: 10;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--paper-color);
+            padding: 30px;
+            width: 350px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid #eee;
+        }
+
+        .modal h3 {
+            font-family: 'Nanum Pen Script', cursive;
+            font-size: 1.8rem;
+            color: var(--theme-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: 15px;
+            border: 1px dashed #ccc;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        #previewImg {
+            width: 80px; height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--theme-color);
+            margin: 0 auto 15px;
+            display: none;
+        }
+
+        .modal-buttons { display: flex; justify-content: center; gap: 10px; }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-save { background: var(--theme-color); color: white; }
+        .btn-delete { background: #eee; color: #555; }
+        .btn-cancel { background: #eee; color: #555; }
+
+    </style>
+</head>
+<body>
+
+<div class="diary-wrapper">
+    <div class="settings-btn" id="settingsBtn">⚙</div>
+
+    <!-- 설정 패널 -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="setting-item">
+            <span>테마 색:</span>
+            <input type="color" id="themeColorInput" value="#e68a8a">
+        </div>
+        <div class="setting-item">
+            <span>스탬프 투명도:</span>
+            <input type="range" id="stampOpacityInput" min="0.1" max="1" step="0.1" value="0.85">
+        </div>
+    </div>
+
+    <div class="diary-header">
+        <button class="nav-btn" id="prevBtn">&lt;</button>
+        <span class="month-display" id="monthDisplay">2024년 4월</span>
+        <button class="nav-btn" id="nextBtn">&gt;</button>
+    </div>
+
+    <div class="calendar-grid" id="calendarGrid"></div>
+</div>
+
+<!-- 모달 -->
+<div class="modal" id="dataModal">
+    <div class="modal-content">
+        <h3 id="modalTitle">2024-01-01</h3>
+
+        <input type="text" id="textInput" placeholder="오늘의 메모 (선택)">
+
+        <label for="fileInput" class="file-upload-label">
+            📷 사진 스티커 붙이기
+        </label>
+        <input type="file" id="fileInput" accept="image/*" style="display:none;">
+
+        <img id="previewImg" src="">
+
+        <div class="modal-buttons">
+            <button class="btn btn-delete" id="deleteBtn">삭제</button>
+            <button class="btn btn-cancel" id="cancelBtn">취소</button>
+            <button class="btn btn-save" id="saveBtn">저장</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentDate = new Date();
+    let currentYear = currentDate.getFullYear();
+    let currentMonth = currentDate.getMonth();
+    let selectedDateKey = null;
+
+    const grid = document.getElementById('calendarGrid');
+    const monthDisplay = document.getElementById('monthDisplay');
+    const modal = document.getElementById('dataModal');
+    const fileInput = document.getElementById('fileInput');
+    const previewImg = document.getElementById('previewImg');
+
+    // 설정
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const themeColorInput = document.getElementById('themeColorInput');
+    const stampOpacityInput = document.getElementById('stampOpacityInput');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSettings();
+        renderCalendar();
+    });
+
+    function loadSettings() {
+        const savedTheme = localStorage.getItem('themeColor') || '#e68a8a';
+        const savedOpacity = localStorage.getItem('stampOpacity') || '0.85';
+
+        document.documentElement.style.setProperty('--theme-color', savedTheme);
+        themeColorInput.value = savedTheme;
+        document.documentElement.style.setProperty('--stamp-opacity', savedOpacity);
+        stampOpacityInput.value = savedOpacity;
+    }
+
+    themeColorInput.addEventListener('input', (e) => {
+        document.documentElement.style.setProperty('--theme-color', e.target.value);
+        localStorage.setItem('themeColor', e.target.value);
+    });
+
+    stampOpacityInput.addEventListener('input', (e) => {
+        document.documentElement.style.setProperty('--stamp-opacity', e.target.value);
+        localStorage.setItem('stampOpacity', e.target.value);
+    });
+
+    settingsBtn.addEventListener('click', () => {
+        settingsPanel.classList.toggle('active');
+    });
+
+    function renderCalendar() {
+        grid.innerHTML = "";
+
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        days.forEach(day => {
+            const d = document.createElement('div');
+            d.className = 'day-name';
+            d.innerText = day;
+            grid.appendChild(d);
+        });
+
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        monthDisplay.innerText = `${currentYear}년 ${currentMonth + 1}월`;
+
+        for(let i=0; i<firstDay; i++) {
+            const e = document.createElement('div');
+            e.className = 'date-cell empty';
+            grid.appendChild(e);
+        }
+
+        const today = new Date();
+        for(let i=1; i<=daysInMonth; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'date-cell';
+
+            const num = document.createElement('span');
+            num.className = 'date-num';
+            num.innerText = i;
+            cell.appendChild(num);
+
+            const mStr = (currentMonth + 1).toString().padStart(2, '0');
+            const dStr = i.toString().padStart(2, '0');
+            const dateKey = `${currentYear}-${mStr}-${dStr}`;
+
+            if(i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                cell.classList.add('today');
+            }
+
+            const saved = localStorage.getItem(dateKey);
+            if(saved) {
+                const data = JSON.parse(saved);
+                if(data.image) {
+                    const img = document.createElement('img');
+                    img.src = data.image;
+                    img.className = 'stamp-img';
+                    cell.appendChild(img);
+                }
+            }
+
+            cell.addEventListener('click', () => openModal(dateKey));
+            grid.appendChild(cell);
+        }
+    }
+
+    function openModal(dateKey) {
+        selectedDateKey = dateKey;
+        document.getElementById('modalTitle').innerText = dateKey;
+
+        document.getElementById('textInput').value = '';
+        fileInput.value = '';
+        previewImg.style.display = 'none';
+
+        const saved = localStorage.getItem(dateKey);
+        if(saved) {
+            const data = JSON.parse(saved);
+            if(data.text) document.getElementById('textInput').value = data.text;
+            if(data.image) {
+                previewImg.src = data.image;
+                previewImg.style.display = 'block';
+            }
+        }
+        modal.style.display = 'flex';
+    }
+
+    fileInput.addEventListener('change', function() {
+        if(this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+        const text = document.getElementById('textInput').value;
+        const newImage = previewImg.style.display !== 'none' && previewImg.src.startsWith('data:') ? previewImg.src : null;
+        const existing = localStorage.getItem(selectedDateKey) ? JSON.parse(localStorage.getItem(selectedDateKey)) : {image:null};
+        const finalImage = newImage || existing.image;
+
+        if(!text && !finalImage) {
+            alert("메모 또는 사진을 입력해주세요.");
+            return;
+        }
+
+        const data = { text: text, image: finalImage };
+
+        try {
+            localStorage.setItem(selectedDateKey, JSON.stringify(data));
+            modal.style.display = 'none';
+            renderCalendar();
+        } catch(e) {
+            alert("저장 실패: 이미지가 너무 큽니다.");
+        }
+    });
+
+    document.getElementById('deleteBtn').addEventListener('click', () => {
+        if(confirm("삭제하시겠습니까?")) {
+            localStorage.removeItem(selectedDateKey);
+            modal.style.display = 'none';
+            renderCalendar();
+        }
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => modal.style.display = 'none');
+    window.addEventListener('click', (e) => { if(e.target === modal) modal.style.display = 'none'; });
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+        currentMonth--; if(currentMonth<0){currentMonth=11; currentYear--;}
+        renderCalendar();
+    });
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        currentMonth++; if(currentMonth>11){currentMonth=0; currentYear++;}
+        renderCalendar();
+    });
+</script>
+</body>
+</html>

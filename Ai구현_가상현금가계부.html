@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 가상 현금 챌린지</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --success: #00b894;
+            --danger: #ff7675;
+            --warning: #fdcb6e;
+            --dark: #2d3436;
+            --bg: #dfe6e9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 헤더 & 레벨 */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .level-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.4);
+        }
+
+        .total-money {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--dark);
+            margin: 15px 0 5px;
+        }
+
+        .total-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* 통장 목록 */
+        .accounts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .account-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .account-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .account-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .account-balance {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .account-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-icon {
+            width: 30px; height: 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-edit { background: #eee; }
+        .btn-delete { background: #ffecec; color: var(--danger); }
+
+        .progress-bar {
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+
+        .add-account-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: 3px dashed white;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+            font-size: 3rem;
+            font-weight: 300;
+        }
+
+        .add-account-btn span {
+            font-size: 1rem;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: #eee; color: #555; }
+
+        /* 거래 내역 */
+        .transaction-list {
+            margin-top: 20px;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .transaction-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .transaction-title {
+            font-weight: 500;
+        }
+
+        .transaction-date {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .amount-plus { color: var(--success); }
+        .amount-minus { color: var(--danger); }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        /* 업적 배지 */
+        .achievements {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .achievement {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            opacity: 0.5;
+            cursor: pointer;
+        }
+
+        .achievement.unlocked {
+            opacity: 1;
+            box-shadow: 0 0 15px rgba(253, 203, 110, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="level-badge">LV. <span id="levelNum">1</span> 💰</div>
+        <div class="total-money" id="totalMoney">₩0</div>
+        <div class="total-label">총 자산</div>
+
+        <!-- 업적 -->
+        <div class="achievements" id="achievements">
+            <div class="achievement" title="첫 통장 개설">🏦</div>
+            <div class="achievement" title="첫 수입">💵</div>
+            <div class="achievement" title="첫 지출">🛒</div>
+            <div class="achievement" title="100만원 달성">🎉</div>
+            <div class="achievement" title="5개 통장">📊</div>
+        </div>
+    </div>
+
+    <!-- 통장 목록 -->
+    <div class="accounts-grid" id="accountsGrid">
+        <!-- 통장 카드들이 여기에 추가됨 -->
+        <div class="account-card add-account-btn" onclick="openModal('addAccount')">
+            +
+            <span>새 통장 만들기</span>
+        </div>
+    </div>
+
+    <!-- 통장 추가/수정 모달 -->
+    <div class="modal" id="accountModal">
+        <div class="modal-content">
+            <h2 id="accountModalTitle">새 통장 만들기</h2>
+            <div class="form-group">
+                <label>통장 이름 (목적)</label>
+                <input type="text" id="accountName" placeholder="예: 여행 자금">
+            </div>
+            <div class="form-group">
+                <label>목표 금액</label>
+                <input type="number" id="accountGoal" placeholder="예: 1000000">
+            </div>
+            <div class="form-group">
+                <label>현재 잔액</label>
+                <input type="number" id="accountBalance" placeholder="예: 0">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="closeModal('accountModal')">취소</button>
+                <button class="btn btn-primary" id="saveAccountBtn">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 거래 내역 모달 -->
+    <div class="modal" id="transactionModal">
+        <div class="modal-content">
+            <h2 id="transactionModalTitle">거래 내역</h2>
+            <div class="form-group">
+                <label>유형</label>
+                <select id="transactionType">
+                    <option value="income">수익 (+) - 넣기</option>
+                    <option value="expense">지출 (-) - 빼기</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>내용</label>
+                <input type="text" id="transactionTitle" placeholder="예: 월급, 점심값">
+            </div>
+            <div class="form-group">
+                <label>금액</label>
+                <input type="number" id="transactionAmount" placeholder="금액 입력">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="closeModal('transactionModal')">취소</button>
+                <button class="btn btn-success" id="addTransactionBtn">추가</button>
+            </div>
+
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+
+            <div id="transactionList">
+                <!-- 거래 내역 목록 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 삭제 확인 모달 -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content" style="text-align: center;">
+            <h2>정말 삭제하시겠습니까?</h2>
+            <p style="margin: 15px 0; color: #666;">이 통장의 모든 데이터가 삭제됩니다.</p>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">취소</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">삭제</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // 데이터 저장소
+    let accounts = JSON.parse(localStorage.getItem('cashChallengeAccounts')) || [];
+    let currentAccountId = null;
+    let deleteTarget = null;
+
+    // 페이지 로드 시 실행
+    document.addEventListener('DOMContentLoaded', () => {
+        renderAccounts();
+        updateTotal();
+        checkAchievements();
+    });
+
+    // 통장 렌더링
+    function renderAccounts() {
+        const grid = document.getElementById('accountsGrid');
+
+        // 기존 통장 카드 제거 (추가 버튼 제외)
+        const cards = grid.querySelectorAll('.account-card:not(.add-account-btn)');
+        cards.forEach(card => card.remove());
+
+        // 각 통장 카드 추가
+        accounts.forEach(account => {
+            const card = document.createElement('div');
+            card.className = 'account-card';
+            card.onclick = (e) => {
+                if(!e.target.closest('.account-actions')) {
+                    openTransactionModal(account.id);
+                }
+            };
+
+            const progress = Math.min((account.balance / account.goal) * 100, 100);
+
+            card.innerHTML = `
+                <div class="account-header">
+                    <span class="account-name">${account.name}</span>
+                    <div class="account-actions">
+                        <button class="btn-icon btn-edit" onclick="editAccount(${account.id})">✏️</button>
+                        <button class="btn-icon btn-delete" onclick="confirmDelete(${account.id})">🗑️</button>
+                    </div>
+                </div>
+                <div class="account-balance">₩${account.balance.toLocaleString()}</div>
+                <div style="font-size: 0.8rem; color: #888; margin-top: 5px;">
+                    목표: ₩${account.goal.toLocaleString()}
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+            `;
+
+            grid.insertBefore(card, grid.lastElementChild);
+        });
+    }
+
+    // 총 자산 업데이트
+    function updateTotal() {
+        const total = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+        document.getElementById('totalMoney').innerText = `₩${total.toLocaleString()}`;
+
+        // 레벨 계산 (10만원마다 레벨업)
+        const level = Math.floor(total / 100000) + 1;
+        document.getElementById('levelNum').innerText = level;
+
+        saveData();
+    }
+
+    // ========== 통장 CRUD ==========
+
+    // 통장 추가 모달 열기
+    function openModal(type) {
+        if(type === 'addAccount') {
+            document.getElementById('accountModalTitle').innerText = '새 통장 만들기';
+            document.getElementById('accountName').value = '';
+            document.getElementById('accountGoal').value = '';
+            document.getElementById('accountBalance').value = '0';
+            document.getElementById('saveAccountBtn').onclick = saveNewAccount;
+        }
+        document.getElementById(type === 'addAccount' ? 'accountModal' : 'transactionModal').classList.add('show');
+    }
+
+    // 새 통장 저장
+    function saveNewAccount() {
+        const name = document.getElementById('accountName').value;
+        const goal = parseInt(document.getElementById('accountGoal').value) || 0;
+        const balance = parseInt(document.getElementById('accountBalance').value) || 0;
+
+        if(!name) {
+            alert('통장 이름을 입력해주세요!');
+            return;
+        }
+
+        const newAccount = {
+            id: Date.now(),
+            name: name,
+            goal: goal,
+            balance: balance,
+            transactions: []
+        };
+
+        accounts.push(newAccount);
+        closeModal('accountModal');
+        renderAccounts();
+        updateTotal();
+        checkAchievements();
+    }
+
+    // 통장 수정
+    function editAccount(id) {
+        const account = accounts.find(a => a.id === id);
+        if(!account) return;
+
+        document.getElementById('accountModalTitle').innerText = '통장 수정';
+        document.getElementById('accountName').value = account.name;
+        document.getElementById('accountGoal').value = account.goal;
+        document.getElementById('accountBalance').value = account.balance;
+
+        document.getElementById('saveAccountBtn').onclick = () => {
+            account.name = document.getElementById('accountName').value;
+            account.goal = parseInt(document.getElementById('accountGoal').value) || 0;
+            account.balance = parseInt(document.getElementById('accountBalance').value) || 0;
+
+            closeModal('accountModal');
+            renderAccounts();
+            updateTotal();
+        };
+
+        document.getElementById('accountModal').classList.add('show');
+    }
+
+    // 삭제 확인
+    function confirmDelete(id) {
+        deleteTarget = id;
+        document.getElementById('deleteModal').classList.add('show');
+
+        document.getElementById('confirmDeleteBtn').onclick = () => {
+            accounts = accounts.filter(a => a.id !== deleteTarget);
+            closeModal('deleteModal');
+            renderAccounts();
+            updateTotal();
+        };
+    }
+
+    // ========== 거래 내역 ==========
+
+    function openTransactionModal(id) {
+        currentAccountId = id;
+        const account = accounts.find(a => a.id === id);
+
+        document.getElementById('transactionModalTitle').innerText = account.name;
+        document.getElementById('transactionType').value = 'income';
+        document.getElementById('transactionTitle').value = '';
+        document.getElementById('transactionAmount').value = '';
+
+        renderTransactions(account);
+        document.getElementById('transactionModal').classList.add('show');
+    }
+
+    function renderTransactions(account) {
+        const list = document.getElementById('transactionList');
+
+        if(!account.transactions || account.transactions.length === 0) {
+            list.innerHTML = '<div class="empty-state">거래 내역이 없습니다</div>';
+            return;
+        }
+
+        list.innerHTML = account.transactions.map(t => `
+            <div class="transaction-item">
+                <div class="transaction-info">
+                    <span class="transaction-title">${t.title}</span>
+                    <span class="transaction-date">${new Date(t.date).toLocaleDateString()}</span>
+                </div>
+                <div class="transaction-amount ${t.type === 'income' ? 'amount-plus' : 'amount-minus'}">
+                    ${t.type === 'income' ? '+' : '-'}₩${t.amount.toLocaleString()}
+                    <button onclick="deleteTransaction(${t.id})" style="margin-left:10px; border:none; background:none; cursor:pointer; color:#888;">×</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('addTransactionBtn').addEventListener('click', () => {
+        const type = document.getElementById('transactionType').value;
+        const title = document.getElementById('transactionTitle').value;
+        const amount = parseInt(document.getElementById('transactionAmount').value);
+
+        if(!title || !amount) {
+            alert('내용과 금액을 입력해주세요!');
+            return;
+        }
+
+        const account = accounts.find(a => a.id === currentAccountId);
+
+        // 잔액 업데이트
+        if(type === 'income') {
+            account.balance += amount;
+        } else {
+            account.balance -= amount;
+        }
+
+        // 거래 내역 추가
+        account.transactions.push({
+            id: Date.now(),
+            type: type,
+            title: title,
+            amount: amount,
+            date: new Date().toISOString()
+        });
+
+        // 입력창 초기화
+        document.getElementById('transactionTitle').value = '';
+        document.getElementById('transactionAmount').value = '';
+
+        renderTransactions(account);
+        renderAccounts();
+        updateTotal();
+        checkAchievements();
+    });
+
+    function deleteTransaction(tId) {
+        const account = accounts.find(a => a.id === currentAccountId);
+        const t = account.transactions.find(tr => tr.id === tId);
+
+        // 잔액 복구
+        if(t.type === 'income') {
+            account.balance -= t.amount;
+        } else {
+            account.balance += t.amount;
+        }
+
+        account.transactions = account.transactions.filter(tr => tr.id !== tId);
+
+        renderTransactions(account);
+        renderAccounts();
+        updateTotal();
+    }
+
+    // ========== 업적 시스템 ==========
+    function checkAchievements() {
+        const achs = document.querySelectorAll('.achievement');
+        const total = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+
+        // 첫 통장
+        if(accounts.length > 0) achs[0].classList.add('unlocked');
+
+        // 첫 수입/지출
+        let hasIncome = false, hasExpense = false;
+        accounts.forEach(acc => {
+            acc.transactions.forEach(t => {
+                if(t.type === 'income') hasIncome = true;
+                if(t.type === 'expense') hasExpense = true;
+            });
+        });
+        if(hasIncome) achs[1].classList.add('unlocked');
+        if(hasExpense) achs[2].classList.add('unlocked');
+
+        // 100만원
+        if(total >= 1000000) achs[3].classList.add('unlocked');
+
+        // 5개 통장
+        if(accounts.length >= 5) achs[4].classList.add('unlocked');
+    }
+
+    // ========== 유틸 ==========
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+
+    function saveData() {
+        localStorage.setItem('cashChallengeAccounts', JSON.stringify(accounts));
+    }
+
+    // 모달 외부 클릭 시 닫기
+    window.onclick = (e) => {
+        if(e.target.classList.contains('modal')) {
+            e.target.classList.remove('show');
+        }
+    };
+
+</script>
+</body>
+</html>

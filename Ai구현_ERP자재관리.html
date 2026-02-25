@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP 자재 관리 시스템</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #f0f2f5;
+            color: #1a1a1a;
+        }
+
+        /* 상단 헤더 */
+        .header {
+            background: #1a1a2e;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 { font-size: 1.5rem; }
+        .header-actions button {
+            background: #16213e;
+            border: 1px solid #30475e;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        /* 메인 레이아웃 */
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+
+        /* 사이드바 */
+        .sidebar {
+            width: 240px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover { background: #f5f5f5; }
+        .menu-item.active {
+            background: #e8f4fd;
+            color: #1976d2;
+            border-right: 3px solid #1976d2;
+        }
+
+        .menu-item span { font-size: 1.1rem; }
+
+        /* 콘텐츠 영역 */
+        .content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        /* 통계 카드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .stat-card.warning .value { color: #f57c00; }
+        .stat-card.danger .value { color: #d32f2f; }
+        .stat-card.success .value { color: #388e3c; }
+
+        /* 테이블 공통 */
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-header h2 { font-size: 1.3rem; }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary { background: #1976d2; color: white; }
+        .btn-primary:hover { background: #1565c0; }
+
+        .btn-secondary { background: #f5f5f5; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+
+        .btn-danger { background: #d32f2f; color: white; }
+        .btn-danger:hover { background: #c62828; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.85rem;
+        }
+
+        tr:hover { background: #f9f9f9; }
+
+        /* 상태 뱃지 */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: #e8f5e9; color: #2e7d32; }
+        .badge-warning { background: #fff3e0; color: #ef6c00; }
+        .badge-danger { background: #ffebee; color: #c62828; }
+        .badge-info { background: #e3f2fd; color: #1565c0; }
+
+        /* 모달 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 { font-size: 1.2rem; }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .modal-body { padding: 24px; }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-group { flex: 1; }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* 재고 부족 아이콘 */
+        .low-stock {
+            color: #f57c00;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .sidebar { width: 70px; }
+            .menu-item span { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; display: flex; overflow-x: auto; }
+            .menu-item { flex-shrink: 0; padding: 12px 20px; }
+            .menu-item span { display: inline; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 헤더 -->
+    <header class="header">
+        <h1>🏭 ERP 자재 관리 시스템</h1>
+        <div class="header-actions">
+            <button onclick="initData()">🔄 데이터 초기화</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- 사이드바 -->
+        <nav class="sidebar">
+            <div class="menu-item active" data-view="dashboard" onclick="switchView('dashboard')">
+                <span>📊</span> 대시보드
+            </div>
+            <div class="menu-item" data-view="materials" onclick="switchView('materials')">
+                <span>📦</span> 자재 목록
+            </div>
+            <div class="menu-item" data-view="inbound" onclick="switchView('inbound')">
+                <span>📥</span> 입고 관리
+            </div>
+            <div class="menu-item" data-view="outbound" onclick="switchView('outbound')">
+                <span>📤</span> 출고 관리
+            </div>
+            <div class="menu-item" data-view="partners" onclick="switchView('partners')">
+                <span>🏢</span> 거래처 관리
+            </div>
+        </nav>
+
+        <!-- 콘텐츠 -->
+        <main class="content" id="content">
+            <!-- 자바스크립트로视图 렌더링 -->
+        </main>
+    </div>
+
+    <!-- 모달 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="modalTitle">모달</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 폼 렌더링 -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <!-- 버튼 렌더링 -->
+            </div>
+        </div>
+    </div>
+
+<script>
+    // ==================== 데이터베이스 (localStorage) ====================
+    const DB_KEYS = {
+        MATERIALS: 'erp_materials',
+        INBOUND: 'erp_inbound',
+        OUTBOUND: 'erp_outbound',
+        PARTNERS: 'erp_partners',
+        TRANSACTIONS: 'erp_transactions'
+    };
+
+    // 초기 데이터 생성
+    function initData() {
+        if (!confirm('데이터를 초기화하시겠습니까? 모든 데이터가 삭제됩니다.')) return;
+
+        const materials = [
+            { id: 1, code: 'MAT-001', name: '원자재 A', category: '원자재', unit: 'kg', stock: 150, minStock: 50, price: 10000, partnerId: 1 },
+            { id: 2, code: 'MAT-002', name: '원자재 B', category: '원자재', unit: 'kg', stock: 30, minStock: 50, price: 15000, partnerId: 1 },
+            { id: 3, code: 'MAT-003', name: '부자재 C', category: '부자재', unit: 'ea', stock: 500, minStock: 100, price: 500, partnerId: 2 },
+            { id: 4, code: 'MAT-004', name: '완제품 D', category: '완제품', unit: 'ea', stock: 80, minStock: 20, price: 50000, partnerId: null },
+            { id: 5, code: 'MAT-005', name: '포장재 E', category: '부자재', unit: 'roll', stock: 25, minStock: 30, price: 2000, partnerId: 3 }
+        ];
+
+        const partners = [
+            { id: 1, name: '한국물산', type: 'supplier', contact: '02-1234-5678', address: '서울시 강남구' },
+            { id: 2, name: '글로벌화학', type: 'supplier', contact: '02-2345-6789', address: '서울시 송파구' },
+            { id: 3, name: '패키지랜드', type: 'supplier', contact: '02-3456-7890', address: '경기도 안산시' }
+        ];
+
+        const transactions = [
+            { id: 1, type: 'inbound', materialId: 1, quantity: 100, date: '2025-01-10', partnerId: 1, note: '구매 입고' },
+            { id: 2, type: 'outbound', materialId: 4, quantity: 20, date: '2025-01-12', partnerId: null, note: '판매 출고' }
+        ];
+
+        localStorage.setItem(DB_KEYS.MATERIALS, JSON.stringify(materials));
+        localStorage.setItem(DB_KEYS.PARTNERS, JSON.stringify(partners));
+        localStorage.setItem(DB_KEYS.TRANSACTIONS, JSON.stringify(transactions));
+
+        alert('데이터가 초기화되었습니다!');
+        renderAll();
+    }
+
+    // 데이터 가져오기
+    function getData(key) {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : [];
+    }
+
+    // 데이터 저장
+    function setData(key, data) {
+        localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    // ==================== 뷰 렌더링 ====================
+    function switchView(viewName) {
+        // 메뉴 활성화
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.view === viewName);
+        });
+
+        const content = document.getElementById('content');
+
+        switch(viewName) {
+            case 'dashboard':
+                content.innerHTML = renderDashboard();
+                break;
+            case 'materials':
+                content.innerHTML = renderMaterials();
+                break;
+            case 'inbound':
+                content.innerHTML = renderInbound();
+                break;
+            case 'outbound':
+                content.innerHTML = renderOutbound();
+                break;
+            case 'partners':
+                content.innerHTML = renderPartners();
+                break;
+        }
+    }
+
+    // 대시보드
+    function renderDashboard() {
+        const materials = getData(DB_KEYS.MATERIALS);
+        const transactions = getData(DB_KEYS.TRANSACTIONS);
+
+        const totalMaterials = materials.length;
+        const lowStock = materials.filter(m => m.stock < m.minStock).length;
+        const todayInbound = transactions.filter(t => t.type === 'inbound').length;
+        const todayOutbound = transactions.filter(t => t.type === 'outbound').length;
+
+        return `
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>📦 총 자재 품목</h3>
+                    <div class="value">${totalMaterials}</div>
+                </div>
+                <div class="stat-card warning">
+                    <h3>⚠️ 재고 부족</h3>
+                    <div class="value">${lowStock}</div>
+                </div>
+                <div class="stat-card success">
+                    <h3>📥 오늘 입고</h3>
+                    <div class="value">${todayInbound}</div>
+                </div>
+                <div class="stat-card danger">
+                    <h3>📤 오늘 출고</h3>
+                    <div class="value">${todayOutbound}</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>⚠️ 재고 부족 자재</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>자재코드</th>
+                            <th>자재명</th>
+                            <th>현재고</th>
+                            <th>최소재고</th>
+                            <th>상태</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${materials.filter(m => m.stock < m.minStock).map(m => `
+                            <tr>
+                                <td>${m.code}</td>
+                                <td>${m.name}</td>
+                                <td><strong>${m.stock}</strong> ${m.unit}</td>
+                                <td>${m.minStock} ${m.unit}</td>
+                                <td><span class="badge badge-danger">재고부족</span></td>
+                            </tr>
+                        `).join('') || '<tr><td colspan="5" style="text-align:center;color:#888">재고 부족 자재가 없습니다</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // 자재 목록
+    function renderMaterials() {
+        const materials = getData(DB_KEYS.MATERIALS);
+
+        return `
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>📦 자재 목록</h2>
+                    <button class="btn btn-primary" onclick="openMaterialModal()">➕ 자재 추가</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>자재코드</th>
+                            <th>자재명</th>
+                            <th>구분</th>
+                            <th>현재고</th>
+                            <th>단가</th>
+                            <th>상태</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${materials.map(m => {
+                            const isLowStock = m.stock < m.minStock;
+                            return `
+                                <tr>
+                                    <td>${m.code}</td>
+                                    <td>${m.name}</td>
+                                    <td>${m.category}</td>
+                                    <td>${m.stock} ${m.unit}</td>
+                                    <td>${m.price.toLocaleString()}원</td>
+                                    <td>
+                                        ${isLowStock
+                                            ? '<span class="badge badge-danger">재고부족</span>'
+                                            : '<span class="badge badge-success">정상</span>'}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-secondary" style="padding:6px 12px;font-size:0.8rem" onclick="editMaterial(${m.id})">수정</button>
+                                        <button class="btn btn-danger" style="padding:6px 12px;font-size:0.8rem" onclick="deleteMaterial(${m.id})">삭제</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // 입고 관리
+    function renderInbound() {
+        const materials = getData(DB_KEYS.MATERIALS);
+        const transactions = getData(DB_KEYS.TRANSACTIONS).filter(t => t.type === 'inbound');
+        const partners = getData(DB_KEYS.PARTNERS);
+
+        return `
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>📥 입고 관리</h2>
+                    <button class="btn btn-primary" onclick="openInboundModal()">➕ 입고 등록</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>입고일</th>
+                            <th>자재명</th>
+                            <th>수량</th>
+                            <th>거래처</th>
+                            <th>비고</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${transactions.sort((a,b) => b.date.localeCompare(a.date)).map(t => {
+                            const material = materials.find(m => m.id === t.materialId);
+                            const partner = partners.find(p => p.id === t.partnerId);
+                            return `
+                                <tr>
+                                    <td>${t.date}</td>
+                                    <td>${material?.name || '-'}</td>
+                                    <td>${t.quantity} ${material?.unit || ''}</td>
+                                    <td>${partner?.name || '-'}</td>
+                                    <td>${t.note || '-'}</td>
+                                </tr>
+                            `;
+                        }).join('') || '<tr><td colspan="5" style="text-align:center;color:#888">입고 내역이 없습니다</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // 출고 관리
+    function renderOutbound() {
+        const materials = getData(DB_KEYS.MATERIALS);
+        const transactions = getData(DB_KEYS.TRANSACTIONS).filter(t => t.type === 'outbound');
+
+        return `
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>📤 출고 관리</h2>
+                    <button class="btn btn-primary" onclick="openOutboundModal()">➕ 출고 등록</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>출고일</th>
+                            <th>자재명</th>
+                            <th>수량</th>
+                            <th>비고</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${transactions.sort((a,b) => b.date.localeCompare(a.date)).map(t => {
+                            const material = materials.find(m => m.id === t.materialId);
+                            return `
+                                <tr>
+                                    <td>${t.date}</td>
+                                    <td>${material?.name || '-'}</td>
+                                    <td>${t.quantity} ${material?.unit || ''}</td>
+                                    <td>${t.note || '-'}</td>
+                                </tr>
+                            `;
+                        }).join('') || '<tr><td colspan="4" style="text-align:center;color:#888">출고 내역이 없습니다</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // 거래처 관리
+    function renderPartners() {
+        const partners = getData(DB_KEYS.PARTNERS);
+
+        return `
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>🏢 거래처 목록</h2>
+                    <button class="btn btn-primary" onclick="openPartnerModal()">➕ 거래처 추가</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>거래처코드</th>
+                            <th>거래처명</th>
+                            <th>유형</th>
+                            <th>연락처</th>
+                            <th>주소</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${partners.map(p => `
+                            <tr>
+                                <td>PTN-${String(p.id).padStart(3, '0')}</td>
+                                <td>${p.name}</td>
+                                <td><span class="badge badge-info">${p.type === 'supplier' ? '공급업체' : '고객'}</span></td>
+                                <td>${p.contact}</td>
+                                <td>${p.address}</td>
+                                <td>
+                                    <button class="btn btn-danger" style="padding:6px 12px;font-size:0.8rem" onclick="deletePartner(${p.id})">삭제</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // ==================== 모달 ====================
+    function openModal(title, bodyHtml, footerHtml) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalBody').innerHTML = bodyHtml;
+        document.getElementById('modalFooter').innerHTML = footerHtml;
+        document.getElementById('modalOverlay').classList.add('show');
+    }
+
+    function closeModal(e) {
+        if (!e || e.target === document.getElementById('modalOverlay')) {
+            document.getElementById('modalOverlay').classList.remove('show');
+        }
+    }
+
+    // 자재 추가/수정 모달
+    function openMaterialModal(id = null) {
+        const materials = getData(DB_KEYS.MATERIALS);
+        const material = id ? materials.find(m => m.id === id) : null;
+
+        const title = id ? '✏️ 자재 수정' : '➕ 자재 추가';
+        const partners = getData(DB_KEYS.PARTNERS);
+
+        const body = `
+            <form id="materialForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>자재코드</label>
+                        <input type="text" name="code" value="${material?.code || ''}" ${material ? 'readonly' : ''} required>
+                    </div>
+                    <div class="form-group">
+                        <label>구분</label>
+                        <select name="category" required>
+                            <option value="원자재" ${material?.category === '원자재' ? 'selected' : ''}>원자재</option>
+                            <option value="부자재" ${material?.category === '부자재' ? 'selected' : ''}>부자재</option>
+                            <option value="완제품" ${material?.category === '완제품' ? 'selected' : ''}>완제품</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>자재명</label>
+                    <input type="text" name="name" value="${material?.name || ''}" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>현재고</label>
+                        <input type="number" name="stock" value="${material?.stock || 0}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>단위</label>
+                        <select name="unit" required>
+                            <option value="kg" ${material?.unit === 'kg' ? 'selected' : ''}>kg</option>
+                            <option value="ea" ${material?.unit === 'ea' ? 'selected' : ''}>개</option>
+                            <option value="roll" ${material?.unit === 'roll' ? 'selected' : ''}>롤</option>
+                            <option value="box" ${material?.unit === 'box' ? 'selected' : ''}>박스</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>최소재고</label>
+                        <input type="number" name="minStock" value="${material?.minStock || 0}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>단가</label>
+                        <input type="number" name="price" value="${material?.price || 0}" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>거래처</label>
+                    <select name="partnerId">
+                        <option value="">없음</option>
+                        ${partners.map(p => `<option value="${p.id}" ${material?.partnerId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+                    </select>
+                </div>
+            </form>
+        `;
+
+        const footer = `
+            <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+            <button class="btn btn-primary" onclick="saveMaterial(${id})">${id ? '수정' : '저장'}</button>
+        `;
+
+        openModal(title, body, footer);
+    }
+
+    function saveMaterial(id) {
+        const form = document.getElementById('materialForm');
+        const formData = new FormData(form);
+
+        const material = {
+            code: formData.get('code'),
+            name: formData.get('name'),
+            category: formData.get('category'),
+            unit: formData.get('unit'),
+            stock: parseInt(formData.get('stock')),
+            minStock: parseInt(formData.get('minStock')),
+            price: parseInt(formData.get('price')),
+            partnerId: formData.get('partnerId') ? parseInt(formData.get('partnerId')) : null
+        };
+
+        const materials = getData(DB_KEYS.MATERIALS);
+
+        if (id) {
+            // 수정
+            const index = materials.findIndex(m => m.id === id);
+            if (index !== -1) {
+                materials[index] = { ...materials[index], ...material };
+            }
+        } else {
+            // 추가
+            material.id = Date.now();
+            materials.push(material);
+        }
+
+        setData(DB_KEYS.MATERIALS, materials);
+        closeModal();
+        switchView('materials');
+    }
+
+    function editMaterial(id) {
+        openMaterialModal(id);
+    }
+
+    function deleteMaterial(id) {
+        if (!confirm('자재를 삭제하시겠습니까?')) return;
+
+        let materials = getData(DB_KEYS.MATERIALS);
+        materials = materials.filter(m => m.id !== id);
+        setData(DB_KEYS.MATERIALS, materials);
+        switchView('materials');
+    }
+
+    // 입고 모달
+    function openInboundModal() {
+        const materials = getData(DB_KEYS.MATERIALS);
+        const partners = getData(DB_KEYS.PARTNERS);
+
+        const body = `
+            <form id="inboundForm">
+                <div class="form-group">
+                    <label>자재</label>
+                    <select name="materialId" required>
+                        ${materials.map(m => `<option value="${m.id}">${m.name} (${m.stock} ${m.unit})</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>수량</label>
+                        <input type="number" name="quantity" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>입고일</label>
+                        <input type="date" name="date" value="${new Date().toISOString().split('T')[0]}" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>거래처</label>
+                    <select name="partnerId" required>
+                        ${partners.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>비고</label>
+                    <input type="text" name="note" placeholder="입고 관련 메모">
+                </div>
+            </form>
+        `;
+
+        const footer = `
+            <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+            <button class="btn btn-primary" onclick="saveInbound()">입고 등록</button>
+        `;
+
+        openModal('📥 입고 등록', body, footer);
+    }
+
+    function saveInbound() {
+        const form = document.getElementById('inboundForm');
+        const formData = new FormData(form);
+
+        const materialId = parseInt(formData.get('materialId'));
+        const quantity = parseInt(formData.get('quantity'));
+        const partnerId = parseInt(formData.get('partnerId'));
+
+        // 자재 재고 증가
+        const materials = getData(DB_KEYS.MATERIALS);
+        const materialIndex = materials.findIndex(m => m.id === materialId);
+
+        if (materialIndex !== -1) {
+            materials[materialIndex].stock += quantity;
+            setData(DB_KEYS.MATERIALS, materials);
+        }
+
+        // 거래 내역 저장
+        const transactions = getData(DB_KEYS.TRANSACTIONS);
+        transactions.push({
+            id: Date.now(),
+            type: 'inbound',
+            materialId,
+            quantity,
+            date: formData.get('date'),
+            partnerId,
+            note: formData.get('note')
+        });
+        setData(DB_KEYS.TRANSACTIONS, transactions);
+
+        closeModal();
+        switchView('inbound');
+    }
+
+    // 출고 모달
+    function openOutboundModal() {
+        const materials = getData(DB_KEYS.MATERIALS);
+
+        const body = `
+            <form id="outboundForm">
+                <div class="form-group">
+                    <label>자재</label>
+                    <select name="materialId" required onchange="checkStock(this)">
+                        ${materials.map(m => `<option value="${m.id}" data-stock="${m.stock}">${m.name} (${m.stock} ${m.unit})</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>수량</label>
+                        <input type="number" name="quantity" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>출고일</label>
+                        <input type="date" name="date" value="${new Date().toISOString().split('T')[0]}" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>비고</label>
+                    <input type="text" name="note" placeholder="출고 관련 메모">
+                </div>
+            </form>
+        `;
+
+        const footer = `
+            <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+            <button class="btn btn-primary" onclick="saveOutbound()">출고 등록</button>
+        `;
+
+        openModal('📤 출고 등록', body, footer);
+    }
+
+    function checkStock(select) {
+        const option = select.options[select.selectedIndex];
+        const maxStock = parseInt(option.dataset.stock);
+        const quantityInput = document.querySelector('input[name="quantity"]');
+        quantityInput.max = maxStock;
+    }
+
+    function saveOutbound() {
+        const form = document.getElementById('outboundForm');
+        const formData = new FormData(form);
+
+        const materialId = parseInt(formData.get('materialId'));
+        const quantity = parseInt(formData.get('quantity'));
+
+        // 재고 확인
+        const materials = getData(DB_KEYS.MATERIALS);
+        const material = materials.find(m => m.id === materialId);
+
+        if (material.stock < quantity) {
+            alert(`재고가 부족합니다. (현재고: ${material.stock} ${material.unit})`);
+            return;
+        }
+
+        // 자재 재고 감소
+        const materialIndex = materials.findIndex(m => m.id === materialId);
+        if (materialIndex !== -1) {
+            materials[materialIndex].stock -= quantity;
+            setData(DB_KEYS.MATERIALS, materials);
+        }
+
+        // 거래 내역 저장
+        const transactions = getData(DB_KEYS.TRANSACTIONS);
+        transactions.push({
+            id: Date.now(),
+            type: 'outbound',
+            materialId,
+            quantity,
+            date: formData.get('date'),
+            partnerId: null,
+            note: formData.get('note')
+        });
+        setData(DB_KEYS.TRANSACTIONS, transactions);
+
+        closeModal();
+        switchView('outbound');
+    }
+
+    // 거래처 추가
+    function openPartnerModal() {
+        const body = `
+            <form id="partnerForm">
+                <div class="form-group">
+                    <label>거래처명</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>유형</label>
+                    <select name="type" required>
+                        <option value="supplier">공급업체</option>
+                        <option value="customer">고객</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>연락처</label>
+                    <input type="text" name="contact" required>
+                </div>
+                <div class="form-group">
+                    <label>주소</label>
+                    <input type="text" name="address" required>
+                </div>
+            </form>
+        `;
+
+        const footer = `
+            <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+            <button class="btn btn-primary" onclick="savePartner()">저장</button>
+        `;
+
+        openModal('🏢 거래처 추가', body, footer);
+    }
+
+    function savePartner() {
+        const form = document.getElementById('partnerForm');
+        const formData = new FormData(form);
+
+        const partners = getData(DB_KEYS.PARTNERS);
+
+        partners.push({
+            id: Date.now(),
+            name: formData.get('name'),
+            type: formData.get('type'),
+            contact: formData.get('contact'),
+            address: formData.get('address')
+        });
+
+        setData(DB_KEYS.PARTNERS, partners);
+        closeModal();
+        switchView('partners');
+    }
+
+    function deletePartner(id) {
+        if (!confirm('거래처를 삭제하시겠습니까?')) return;
+
+        let partners = getData(DB_KEYS.PARTNERS);
+        partners = partners.filter(p => p.id !== id);
+        setData(DB_KEYS.PARTNERS, partners);
+        switchView('partners');
+    }
+
+    function renderAll() {
+        switchView('dashboard');
+    }
+
+    // 초기화
+    if (!localStorage.getItem(DB_KEYS.MATERIALS)) {
+        initData();
+    } else {
+        renderAll();
+    }
+</script>
+
+</body>
+</html>
