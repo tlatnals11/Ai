@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Web Services</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .profile {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .profile h1 {
+            color: white;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .profile p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 20px;
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .menu-icon {
+            font-size: 2.5rem;
+        }
+
+        .menu-title {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .menu-desc {
+            font-size: 0.75rem;
+            color: #888;
+            text-align: center;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.8rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="profile">
+            <div class="profile-img">👋</div>
+            <h1>Welcome</h1>
+            <p>다양한 웹 서비스 모음</p>
+        </div>
+
+        <div class="menu-grid">
+            <!-- 각 서비스 링크 -->
+            <a href="calendar.html" class="menu-card">
+                <span class="menu-icon">📅</span>
+                <span class="menu-title">다이어리 캘린더</span>
+                <span class="menu-desc">사진 스티커 저장</span>
+            </a>
+
+            <a href="photobooth.html" class="menu-card">
+                <span class="menu-icon">📸</span>
+                <span class="menu-title">인생네컷</span>
+                <span class="menu-desc">4장 촬영</span>
+            </a>
+
+            <a href="challenge.html" class="menu-card">
+                <span class="menu-icon">💪</span>
+                <span class="menu-title">100일 챌린지</span>
+                <span class="menu-desc">목표 달성</span>
+            </a>
+
+            <a href="cash.html" class="menu-card">
+                <span class="menu-icon">💰</span>
+                <span class="menu-title">현금 챌린지</span>
+                <span class="menu-desc">가상 통장</span>
+            </a>
+
+            <a href="game.html" class="menu-card">
+                <span class="menu-icon">🎮</span>
+                <span class="menu-title">게임</span>
+                <span class="menu-desc">미니 게임</span>
+            </a>
+
+            <a href="#" class="menu-card">
+                <span class="menu-icon">➕</span>
+                <span class="menu-title">추가 예정</span>
+                <span class="menu-desc"> Coming Soon</span>
+            </a>
+        </div>
+
+        <div class="footer">
+            © 2024 My Web Services
+        </div>
+    </div>
+
+</body>
+</html>
