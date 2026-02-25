@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Web Services</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -39,18 +44,18 @@
             align-items: center;
             justify-content: center;
             font-size: 2.5rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
         .profile h1 {
             color: white;
             font-size: 1.8rem;
             margin-bottom: 5px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .profile p {
-            color: rgba(255,255,255,0.8);
+            color: rgba(255, 255, 255, 0.8);
             font-size: 0.9rem;
         }
 
@@ -71,12 +76,12 @@
             align-items: center;
             gap: 10px;
             transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .menu-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
         }
 
         .menu-icon {
@@ -97,12 +102,12 @@
         .footer {
             text-align: center;
             margin-top: 40px;
-            color: rgba(255,255,255,0.6);
+            color: rgba(255, 255, 255, 0.6);
             font-size: 0.8rem;
         }
-
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -114,34 +119,61 @@
 
         <div class="menu-grid">
             <!-- 각 서비스 링크 -->
-            <a href="calendar.html" class="menu-card">
+            <a href="http://127.0.0.1:5500/Ai%EA%B5%AC%ED%98%84_%EB%82%98%EB%A7%8C%EC%9D%98%20%EC%BA%98%EB%A6%B0%EB%8D%94.html" class="menu-card">
                 <span class="menu-icon">📅</span>
                 <span class="menu-title">다이어리 캘린더</span>
                 <span class="menu-desc">사진 스티커 저장</span>
             </a>
 
-            <a href="photobooth.html" class="menu-card">
+             <a href="http://127.0.0.1:5500/Ai%EA%B5%AC%ED%98%84_SVG%EC%8A%A4%EC%BC%80%EC%A5%B4%EB%9F%AC.html" class="menu-card">
+                <span class="menu-icon">🏐</span>
+                <span class="menu-title">SVG 스케줄표</span>
+                <span class="menu-desc">배구 일정</span>
+            </a>
+
+            <a href="http://127.0.0.1:5500/Ai%EA%B5%AC%ED%98%84_photobooth.html" class="menu-card">
                 <span class="menu-icon">📸</span>
                 <span class="menu-title">인생네컷</span>
                 <span class="menu-desc">4장 촬영</span>
             </a>
 
-            <a href="challenge.html" class="menu-card">
+            <a href="http://127.0.0.1:5500/Ai%EA%B5%AC%ED%98%84_%EC%B1%8C%EB%A6%B0%EC%A7%80.html" class="menu-card">
                 <span class="menu-icon">💪</span>
                 <span class="menu-title">100일 챌린지</span>
                 <span class="menu-desc">목표 달성</span>
             </a>
 
-            <a href="cash.html" class="menu-card">
+            <a href="http://127.0.0.1:5500/Ai%EA%B5%AC%ED%98%84_%EA%B0%80%EC%83%81%ED%98%84%EA%B8%88%EA%B0%80%EA%B3%84%EB%B6%80.html"
+                class="menu-card">
                 <span class="menu-icon">💰</span>
-                <span class="menu-title">현금 챌린지</span>
-                <span class="menu-desc">가상 통장</span>
+                <span class="menu-title">가계부</span>
+                <span class="menu-desc">현금 챌린지</span>
             </a>
 
-            <a href="game.html" class="menu-card">
+            <a href="http://127.0.0.1:5500/Ai%EA%B5%AC%ED%98%84_%EB%8F%84%EB%A7%9D%EC%B3%90%EC%9D%B4%EB%B2%A4%ED%8A%B8.html"
+                class="menu-card">
                 <span class="menu-icon">🎮</span>
-                <span class="menu-title">게임</span>
-                <span class="menu-desc">미니 게임</span>
+                <span class="menu-title">마우스 게임</span>
+                <span class="menu-desc">이벤트</span>
+            </a>
+
+            <a href=" https://tlatnals11.github.io/AI-FE/" class="menu-card">
+                <span class="menu-icon">🧆</span>
+                <span class="menu-title">오늘의 두쫀쿠</span>
+                <span class="menu-desc">운세</span>
+            </a>
+
+            <a href=" http://127.0.0.1:5500/Ai%EA%B5%AC%ED%98%84_ERP%EC%9E%90%EC%9E%AC%EA%B4%80%EB%A6%AC.html"
+                class="menu-card">
+                <span class="menu-icon">🖥️</span>
+                <span class="menu-title">자재관리</span>
+                <span class="menu-desc">ERP</span>
+            </a>
+            
+            <a href=" http://127.0.0.1:5500/Ai%EA%B5%AC%ED%98%84_%ED%9A%8C%EC%9D%98%EC%8B%A4%EC%98%88%EC%95%BD.html" class="menu-card">
+                <span class="menu-icon">🏢</span>
+                <span class="menu-title">회의실 예약</span>
+                <span class="menu-desc">공간대여</span>
             </a>
 
             <a href="#" class="menu-card">
@@ -152,9 +184,10 @@
         </div>
 
         <div class="footer">
-            © 2024 My Web Services
+            © 2026 My Web Services (with. AI)
         </div>
     </div>
 
 </body>
+
 </html>
