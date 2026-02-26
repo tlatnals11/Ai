@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 커플 빙고 만들기</title>
+
+    <!-- 폰트 및 라이브러리 로드 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #ff6b81;
+            --secondary: #ffa07a;
+            --bg: #fff5f8;
+            --text: #4a3b40;
+            --shadow: 0 10px 25px rgba(255, 107, 129, 0.2);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(#ffe0e6 20%, transparent 20%), radial-gradient(#ffe0e6 20%, transparent 20%);
+            background-position: 0 0, 25px 25px;
+            background-size: 50px 50px;
+            color: var(--text);
+            margin: 0;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Nanum Pen Script', cursive;
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin: 10px 0 30px;
+            text-shadow: 3px 3px 0px #fff;
+            letter-spacing: 3px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            gap: 30px;
+        }
+
+        /* 공통 섹션 스타일 */
+        .section-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            border: 4px solid #fff0f3;
+            animation: popUp 0.5s ease;
+        }
+
+        @keyframes popUp {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* 입력 영역 */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #ffd1d7;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(255, 107, 129, 0.2);
+        }
+
+        button.add-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button.add-btn:hover {
+            transform: scale(1.05);
+            background: #ff4757;
+        }
+
+        /* 드래그 가능한 목록 스타일 */
+        #itemList {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            text-align: left;
+            min-height: 50px;
+        }
+
+        .list-item {
+            background: #fff0f3;
+            border: 1px solid #ffd1d7;
+            margin-bottom: 8px;
+            padding: 12px 20px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: grab;
+            transition: transform 0.2s, background-color 0.2s;
+            font-size: 1.1rem;
+            user-select: none;
+        }
+
+        .list-item:active {
+            cursor: grabbing;
+            background: #ffe0e6;
+            transform: scale(1.02);
+        }
+
+        .sortable-ghost { opacity: 0.4; background: #ffd1d7; }
+        .sortable-drag { background: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        .delete-item {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: 10px;
+            padding: 0 5px;
+        }
+
+        .count-badge {
+            background: var(--primary);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-right: 12px;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 25px;
+        }
+
+        .guide-text {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        /* 만들기 버튼 */
+        .make-btn {
+            background: linear-gradient(45deg, #ff6b81, #ff9eb5);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(255, 107, 129, 0.4);
+            transition: 0.3s;
+            font-family: 'Nanum Pen Script', cursive;
+            width: 100%;
+        }
+
+        .make-btn:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(255, 107, 129, 0.5);
+        }
+
+        .make-btn:disabled {
+            background: #ddd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 커스터마이즈 섹션 */
+        .custom-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .custom-cell {
+            background: #fff0f3;
+            border: 2px dashed #ffd1d7;
+            border-radius: 15px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 110px;
+        }
+
+        .custom-emoji-btn {
+            font-size: 2rem;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: transform 0.2s;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .custom-emoji-btn:hover { transform: scale(1.2); }
+
+        .custom-input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ffd1d7;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-family: 'Noto Sans KR', sans-serif;
+            word-break: break-word; /* 텍스트 줄바꿈 허용 */
+        }
+
+        .custom-input:focus { border-color: var(--primary); outline: none; }
+
+        .custom-title {
+            font-family: 'Nanum Pen Script', cursive;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        /* =========================================
+           결과 빙고판 - 수정된 핵심 스타일
+           ========================================= */
+        .bingo-wrapper {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            animation: popUp 0.5s ease;
+            gap: 20px;
+        }
+
+        .bingo-board {
+            background: #fff;
+            padding: 20px;
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            border: 8px solid #fff0f3;
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .bingo-board::before {
+            content: "💕";
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+        }
+
+        .bingo-title {
+            font-family: 'Nanum Pen Script', cursive;
+            font-size: 2.5rem;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 6px;
+            width: 100%;
+            margin: 0 auto;
+            background: #fff5f8;
+            padding: 5px;
+            border-radius: 20px;
+        }
+
+        td {
+            /*aspect-ratio: 1;  삭제: 고정 비율 대신 유동적 높이 허용*/
+            min-height: 90px; /* 최소 높이 설정 */
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+            /* 화면 너비에 따라 글자 크기 유동 조절 (최소 0.7rem, 최대 1.2rem) */
+            font-size: clamp(0.75rem, 2.5vw, 1.2rem);
+            padding: 8px;
+
+            /* 텍스트 줄바꿈 핵심 속성 */
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+
+            background: #fff;
+            border-radius: 12px;
+            border: 2px dashed #ffd1d7;
+            box-shadow: 2px 2px 0px #fff0f3;
+            position: relative;
+        }
+
+        /* 텍스트가 2줄 이상일 때 이모지 크기 축소 */
+        .cell-emoji {
+            display: block;
+            font-size: clamp(1.2rem, 4vw, 1.8rem); /* 이모지도 유동 크기 */
+            margin-bottom: 3px;
+        }
+
+        /* 빈칸 스타일 */
+        .empty-cell {
+            color: #ccc;
+            font-size: 0.8rem;
+        }
+
+        /* 저장 버튼 */
+        .save-btn {
+            background: #2ed573;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(46, 213, 115, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .save-btn:hover { background: #26af61; }
+
+    </style>
+</head>
+<body>
+
+    <h1>나만의 Love Bingo 💘</h1>
+
+    <div class="container">
+
+        <!-- 1단계: 입력 영역 -->
+        <div class="section-box" id="inputSection">
+            <div class="input-group">
+                <input type="text" id="todoInput" placeholder="together 할 내용을 입력하세요" onkeypress="if(event.key === 'Enter') addItem()">
+                <button class="add-btn" onclick="addItem()">➕</button>
+            </div>
+
+            <p class="guide-text">
+                🔄 순서를 조정하고 싶으면 드래그하세요! (최대 9개)
+            </p>
+
+            <ul id="itemList"></ul>
+
+            <button class="make-btn" id="makeBtn" onclick="goToCustomize()">🎨 빙고판 커스터마이즈 하러가기</button>
+        </div>
+
+        <!-- 2단계: 커스터마이즈 -->
+        <div class="section-box" id="customizeSection" style="display: none;">
+            <div class="custom-title">✏️ 빙고판 수정하기</div>
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">
+                이모티콘을 클릭하여 변경하고, 글자를 직접 수정하세요!<br>
+                (가운데 칸도 자유롭게 작성 가능합니다)
+            </p>
+
+            <div class="custom-grid" id="customGrid">
+                <!-- 자바스크립트로 생성됩니다 -->
+            </div>
+
+            <div class="nav-buttons">
+                <button class="add-btn" style="background-color: #999;" onclick="showInputList()">⬅️ 목록수로 돌아가기</button>
+                <button class="make-btn" onclick="generateFinalBingo()">🎉 빙고판 완성하기</button>
+            </div>
+        </div>
+
+        <!-- 3단계: 결과 빙고판 -->
+        <div class="bingo-wrapper" id="bingoWrapper">
+            <div class="bingo-board" id="captureArea">
+                <div class="bingo-title">💘 나만의 빙고 💘</div>
+                <table id="bingoTable">
+                    <tr>
+                        <td>1</td><td>2</td><td>3</td>
+                    </tr>
+                    <tr>
+                        <td>4</td><td>5</td><td>6</td>
+                    </tr>
+                    <tr>
+                        <td>7</td><td>8</td><td>9</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="add-btn" style="background-color: #ff9eb5;" onclick="goBackToCustomize()">✏️ 다시 수정하기</button>
+                <button class="save-btn" onclick="downloadImage()">
+                    📥 이미지로 저장하기
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    // 데이터 및 설정
+    let items = [];
+    const EMOJI_LIST = ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💕','💞','💓','💗','💖','💘','💝','🎁','🎀','🎄','🎂','🎈','🎉','🎎','🎏','🎑','🎠','🎢','🎡','🚗','✈️','👑','🐱','🐶','🌸','🌹'];
+    let sortableInstance = null;
+
+    // 1. 항목 추가
+    function addItem() {
+        const input = document.getElementById('todoInput');
+        const text = input.value.trim();
+
+        if (!text) return alert('내용을 입력해주세요!');
+        if (items.length >= 9) return alert('최대 9개까지만 추가할 수 있어요!');
+
+        items.push(text);
+        input.value = '';
+        renderList();
+    }
+
+    // 2. 목록 렌더링
+    function renderList() {
+        const listEl = document.getElementById('itemList');
+        const btnEl = document.getElementById('makeBtn');
+
+        listEl.innerHTML = '';
+
+        items.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'list-item';
+            li.dataset.index = index;
+            li.innerHTML = `
+                <div style="display:flex; align-items:center; width:100%;">
+                    <span style="margin-right:10px; cursor:grab;">☰</span>
+                    <span class="count-badge">${index + 1}</span>
+                    <span style="flex:1;">${item}</span>
+                    <button class="delete-item" onclick="deleteItem(${index})">✖</button>
+                </div>
+            `;
+            listEl.appendChild(li);
+        });
+
+        btnEl.disabled = items.length === 0;
+        btnEl.innerText = `🎨 빙고판 커스터마이즈 하러가기 (${items.length}/9)`;
+
+        if (sortableInstance) sortableInstance.destroy();
+
+        sortableInstance = new Sortable(listEl, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            onEnd: function (evt) {
+                const movedItem = items.splice(evt.oldIndex, 1)[0];
+                items.splice(evt.newIndex, 0, movedItem);
+                renderList();
+            }
+        });
+    }
+
+    function deleteItem(index) {
+        items.splice(index, 1);
+        renderList();
+    }
+
+    // 3. 커스터마이즈 화면으로 이동
+    function goToCustomize() {
+        if (items.length === 0) return alert('항목을 추가해주세요!');
+
+        const grid = document.getElementById('customGrid');
+        grid.innerHTML = '';
+
+        // 9칸 생성
+        for (let i = 0; i < 9; i++) {
+            let textValue = "";
+            let emojiValue = EMOJI_LIST[Math.floor(Math.random() * EMOJI_LIST.length)];
+
+            // 가운데(4번, 5번째) 칸은 기본값 FREE로 설정
+            if (i === 4) {
+                textValue = "FREE";
+                emojiValue = "❤️";
+            } else {
+                // 리스트에서 값 가져오기 (가운데를 건너뛰므로 인덱스 조정)
+                const itemIndex = (i < 4) ? i : i - 1;
+                if (items[itemIndex]) {
+                    textValue = items[itemIndex];
+                } else {
+                    textValue = "";
+                    emojiValue = "✨";
+                }
+            }
+
+            const cell = document.createElement('div');
+            cell.className = 'custom-cell';
+            cell.innerHTML = `
+                <button class="custom-emoji-btn" onclick="cycleEmoji(this)">${emojiValue}</button>
+                <input type="text" class="custom-input" value="${textValue}" placeholder="내용">
+            `;
+            grid.appendChild(cell);
+        }
+
+        // 화면 전환
+        document.getElementById('inputSection').style.display = 'none';
+        document.getElementById('customizeSection').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 이모티콘 순환 변경
+    function cycleEmoji(btn) {
+        const currentEmoji = btn.innerText;
+        let idx = EMOJI_LIST.indexOf(currentEmoji);
+        if (idx === -1) idx = Math.floor(Math.random() * EMOJI_LIST.length);
+
+        const nextIdx = (idx + 1) % EMOJI_LIST.length;
+        btn.innerText = EMOJI_LIST[nextIdx];
+    }
+
+    // 목록 화면으로 복귀
+    function showInputList() {
+        document.getElementById('customizeSection').style.display = 'none';
+        document.getElementById('inputSection').style.display = 'block';
+    }
+
+    // 4. 최종 빙고판 생성
+    function generateFinalBingo() {
+        const inputs = document.querySelectorAll('.custom-input');
+        const emojis = document.querySelectorAll('.custom-emoji-btn');
+
+ document.getElementBy        const table =Id('bingoTable');
+        const cells = table.getElementsByTagName('td');
+
+        for (let i = 0; i < 9; i++) {
+            const text = inputs[i].value;
+            const emoji = emojis[i].innerText;
+
+            // 빈칸 처리
+            if (!text) {
+                cells[i].innerHTML = '<span class="cell-emoji">✨</span><br>waiting';
+                cells[i].classList.add('empty-cell');
+            } else {
+                cells[i].innerHTML = `<span class="cell-emoji">${emoji}</span>${text}`;
+                cells[i].classList.remove('empty-cell');
+            }
+        }
+
+        // 화면 전환
+        document.getElementById('customizeSection').style.display = 'none';
+        document.getElementById('bingoWrapper').style.display = 'flex';
+        document.getElementById('bingoWrapper').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 수정하기 버튼
+    function goBackToCustomize() {
+        document.getElementById('bingoWrapper').style.display = 'none';
+        document.getElementById('customizeSection').style.display = 'block';
+    }
+
+    // 5. 이미지 저장
+    function downloadImage() {
+        const captureArea = document.getElementById('captureArea');
+        html2canvas(captureArea, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            logging: false
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'love-bingo.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    // 초기화
+    renderList();
+
+</script>
+</body>
+</html>

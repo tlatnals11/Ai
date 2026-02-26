@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 하루 저금통</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap');
+
+        :root {
+            --fill-color: #ffd54f; /* 쪽지가 차오를 때의 색상 (노란빛) */
+        }
+
+        body {
+            font-family: 'Nanum Gothic', sans-serif;
+            background-color: #fdf2f8;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        h1 {
+            color: #880e4f;
+            margin-top: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        /* 입력 폼 스타일 */
+        .input-box {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            margin-bottom: 30px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .form-group { margin-bottom: 15px; }
+
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+
+        input[type="date"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        textarea { resize: none; height: 80px; }
+
+        .color-options { display: flex; gap: 10px; }
+
+        .color-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-btn.selected {
+            border-color: #333;
+            transform: scale(1.2);
+        }
+
+        .emoji-options { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .emoji-btn {
+            font-size: 1.5rem;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .emoji-btn.selected { background: #ffecb3; transform: scale(1.1); }
+
+        button.submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #ff80ab;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button.submit-btn:hover { background-color: #ff4081; }
+
+        /* 저금통 (항아리) 스타일 */
+        .jar-container {
+            position: relative;
+            width: 200px;
+            height: 250px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* 아래쪽 정렬 */
+        }
+
+        .jar {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            border: 4px solid rgba(142, 68, 173, 0.3);
+            border-radius: 20px 20px 60px 60px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 10px 0 20px rgba(255,255,255,0.5), 0 10px 20px rgba(0,0,0,0.1);
+            z-index: 1;
+        }
+
+        /* 항아리 목 */
+        .jar::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 20px;
+            background: rgba(142, 68, 173, 0.3);
+            border-radius: 5px;
+        }
+
+        /* 채워지는 쪽지 표현 (그라데이션) */
+        .fill-level {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%; /* JS로 조절 */
+            background: linear-gradient(to top, rgba(255, 213, 79, 0.8) 0%, rgba(255, 213, 79, 0.4) 100%);
+            transition: height 1s ease-in-out;
+            border-radius: 0 0 56px 56px;
+            z-index: 0;
+        }
+
+        /* 작은 텍스트 카운터 (투명도 낮음) */
+        .counter {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.9rem;
+            color: #880e4f;
+            font-weight: bold;
+            text-align: center;
+            pointer-events: none;
+            z-index: 2;
+            background: rgba(255,255,255,0.4);
+            padding: 5px 10px;
+            border-radius: 10px;
+            opacity: 0.4; /* 강조되지 않도록 투명도 조절 */
+        }
+
+        .view-btn {
+            background: #6a1b9a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .saved-note {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .saved-note .date {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .saved-note .emoji {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+        }
+
+        /* 애니메이션 클래스 */
+        .animating-note {
+            position: fixed;
+            width: 180px;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* 접는 애니메이션 (세로로 찌그러뜨림) */
+        @keyframes fold {
+            0% { transform: scaleY(1); }
+            100% { transform: scaleY(0.1); opacity: 0.8; }
+        }
+
+        /* 떨어지는 애니메이션 */
+        @keyframes drop {
+            0% { top: 300px; opacity: 1; transform: scale(1); }
+            30% { top: 250px; transform: scale(0.8) rotate(10deg); } /* 튕기는 효과 */
+            50% { top: 270px; transform: scale(0.7) rotate(-5deg); }
+            70% { top: 255px; transform: scale(0.75) rotate(2deg); }
+            100% { top: 400px; opacity: 0; transform: scale(0.1); } /* 안으로 스며듦 */
+        }
+
+        .folding {
+            animation: fold 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+        }
+
+        .dropping {
+            animation: drop 1s ease-in forwards;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>💖 오늘의 하루 저금통</h1>
+    <p style="color: #666; font-size: 0.9rem;">하루를 기억하는 작은 순간들을 담으세요.</p>
+
+    <div class="container">
+
+        <!-- 입력 영역 -->
+        <div class="input-box" id="inputArea">
+            <div class="form-group">
+                <label>📅 날짜</label>
+                <input type="date" id="noteDate">
+            </div>
+
+            <div class="form-group">
+                <label>🎨 쪽지 색상 선택</label>
+                <div class="color-options" id="colorOptions">
+                    <div class="color-btn selected" style="background-color: #ffcdd2;" data-color="#ffcdd2"></div>
+                    <div class="color-btn" style="background-color: #c5cae9;" data-color="#c5cae9"></div>
+                    <div class="color-btn" style="background-color: #fff9c4;" data-color="#fff9c4"></div>
+                    <div class="color-btn" style="background-color: #dcedc8;" data-color="#dcedc8"></div>
+                    <div class="color-btn" style="background-color: #e1bee7;" data-color="#e1bee7"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>😌 오늘의 감정 (이모티콘)</label>
+                <div class="emoji-options" id="emojiOptions">
+                    <button class="emoji-btn selected" data-type="pos" data-emoji="😊">😊</button>
+                    <button class="emoji-btn" data-type="pos" data-emoji="😍">😍</button>
+                    <button class="emoji-btn" data-type="pos" data-emoji="🥰">🥰</button>
+                    <button class="emoji-btn" data-type="pos" data-emoji="😎">😎</button>
+                    <button class="emoji-btn" data-type="pos" data-emoji="🥳">🥳</button>
+                    <button class="emoji-btn" data-type="neg" data-emoji="😢">😢</button>
+                    <button class="emoji-btn" data-type="neg" data-emoji="😔">😔</button>
+                    <button class="emoji-btn" data-type="neg" data-emoji="😡">😡</button>
+                    <button class="emoji-btn" data-type="neg" data-emoji="🤯">🤯</button>
+                    <button class="emoji-btn" data-type="neg" data-emoji="💔">💔</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>📝 내용</label>
+                <textarea id="noteContent" placeholder="오늘 있었던 일을 간단하게 적어보세요..."></textarea>
+            </div>
+
+            <button class="submit-btn" onclick="throwNote()">💰 저금통에 넣기</button>
+        </div>
+
+        <!-- 저금통 시각화 -->
+        <div class="jar-container">
+            <div class="jar" id="jar">
+                <!-- 채워지는 영역 -->
+                <div class="fill-level" id="fillLevel"></div>
+
+                <!-- 작고 투명한 카운터 -->
+                <div class="counter">
+                    <span id="countNum">0</span>개 저장됨
+                </div>
+            </div>
+        </div>
+
+        <button class="view-btn" onclick="openStorage()">📂 저금통 열기 (연말 정리)</button>
+    </div>
+
+    <!-- 저장된 메모 모달 -->
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeStorage()">&times;</span>
+            <h2 style="text-align: center; color: #880e4f;">나의 1년 기록</h2>
+            <div id="notesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // 초기화: 오늘 날짜 설정
+        document.getElementById('noteDate').valueAsDate = new Date();
+
+        // 상태 변수
+        let selectedColor = '#ffcdd2';
+        let selectedEmoji = '😊';
+
+        // 저금통 최대 용량 (시각적 표현을 위해 50개로 설정, 넘어가도 100% 유지)
+        const MAX_CAPACITY = 50;
+
+        // --- UI 로직 ---
+
+        // 색상 선택
+        const colorBtns = document.querySelectorAll('.color-btn');
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                colorBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedColor = btn.getAttribute('data-color');
+            });
+        });
+
+        // 이모티콘 선택
+        const emojiBtns = document.querySelectorAll('.emoji-btn');
+        emojiBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                emojiBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedEmoji = btn.getAttribute('data-emoji');
+            });
+        });
+
+        // --- 데이터 저장 로직 ---
+
+        function getNotes() {
+            const notes = localStorage.getItem('savings_jar_notes');
+            return notes ? JSON.parse(notes) : [];
+        }
+
+        function saveNoteToStorage(noteObj) {
+            const notes = getNotes();
+            notes.push(noteObj);
+            notes.sort((a, b) => new Date(b.date) - new Date(a.date));
+            localStorage.setItem('savings_jar_notes', JSON.stringify(notes));
+            updateVisual();
+        }
+
+        // 저금통 시각화 업데이트 (채움 퍼센트 & 카운터)
+        function updateVisual() {
+            const notes = getNotes();
+            const count = notes.length;
+
+            // 1. 텍스트 카운터 업데이트
+            document.getElementById('countNum').innerText = count;
+
+            // 2. 채움 퍼센트 계산 및 적용
+            let percentage = (count / MAX_CAPACITY) * 100;
+            if (percentage > 100) percentage = 100; // 최대 100%
+
+            const fillElement = document.getElementById('fillLevel');
+            fillElement.style.height = percentage + '%';
+        }
+
+        // --- 애니메이션 및 핵심 기능 ---
+
+        function throwNote() {
+            const content = document.getElementById('noteContent').value;
+            const date = document.getElementById('noteDate').value;
+
+            if (!content.trim()) {
+                alert("내용을 입력해주세요!");
+                return;
+            }
+
+            // 1. 애니메이션용 요소 생성
+            const animElement = document.createElement('div');
+            animElement.classList.add('animating-note');
+            animElement.style.backgroundColor = selectedColor;
+            animElement.style.color = '#333';
+            animElement.innerText = content;
+
+            // 화면 중앙 배치 (시작 위치)
+            const rect = document.getElementById('inputArea').getBoundingClientRect();
+            // 입력창 중간 정도 높이에서 시작
+            animElement.style.left = (rect.left + window.scrollX + 20) + 'px';
+            animElement.style.top = (rect.top + window.scrollY + 50) + 'px';
+
+            document.body.appendChild(animElement);
+
+            // 2. 접히는 애니메이션 실행
+            setTimeout(() => {
+                animElement.classList.add('folding');
+            }, 50);
+
+            // 3. 접힌 후 떨어지는 애니메이션
+            setTimeout(() => {
+                animElement.classList.remove('folding');
+                animElement.classList.add('dropping');
+
+                // 실제 데이터 저장 (애니메이션과 병행)
+                const noteObj = {
+                    id: Date.now(),
+                    date: date,
+                    content: content,
+                    color: selectedColor,
+                    emoji: selectedEmoji
+                };
+                saveNoteToStorage(noteObj);
+
+                // 4. 애니메이션 종료 후 정리
+                setTimeout(() => {
+                    animElement.remove();
+                    alert("쪽지가 저금통에 담겼습니다! 💖");
+                    document.getElementById('noteContent').value = '';
+                }, 1000); // 애니메이션 시간稍有延长
+
+            }, 600); // 접는 시간(0.6s) 후 실행
+        }
+
+        // --- 저장된 메모 보기 ---
+
+        function openStorage() {
+            const notes = getNotes();
+            const listContainer = document.getElementById('notesList');
+            listContainer.innerHTML = '';
+
+            if (notes.length === 0) {
+                listContainer.innerHTML = '<p style="text-align:center; color:#888;">저장된 기록이 없습니다.</p>';
+            } else {
+                notes.forEach(note => {
+                    const noteDiv = document.createElement('div');
+                    noteDiv.className = 'saved-note';
+                    noteDiv.style.backgroundColor = note.color;
+                    noteDiv.innerHTML = `
+                        <span class="date">${note.date}</span>
+                        <div class="content">${note.content}</div>
+                        <span class="emoji">${note.emoji}</span>
+                    `;
+                    listContainer.appendChild(noteDiv);
+                });
+            }
+
+            document.getElementById('noteModal').style.display = 'flex';
+        }
+
+        function closeStorage() {
+            document.getElementById('noteModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('noteModal');
+            if (event.target == modal) {
+                closeStorage();
+            }
+        }
+
+        // 초기 로드 시 시각화 적용
+        updateVisual();
+
+    </script>
+</body>
+</html>
